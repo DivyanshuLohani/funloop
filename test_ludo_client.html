@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ludo Test Client</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8">Ludo Test Client</h1>
+
+      <!-- Connection / Setup -->
+      <div class="bg-white p-6 rounded shadow mb-8">
+        <h2 class="text-xl font-semibold mb-4">Setup</h2>
+        <div class="flex gap-4">
+          <input
+            type="text"
+            id="roomId"
+            placeholder="Room ID"
+            value="room1"
+            class="border p-2 rounded"
+          />
+          <button
+            onclick="joinRoom()"
+            class="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Join Room
+          </button>
+          <button
+            onclick="startGame()"
+            class="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Start Game
+          </button>
+        </div>
+        <div id="connectionStatus" class="mt-2 text-sm text-gray-600">
+          Disconnected
+        </div>
+        <div class="mt-2 text-sm text-gray-500">
+          Note: To simulate 2 players, open this page in 2 tabs. Join same room.
+        </div>
+      </div>
+
+      <!-- Game Info -->
+      <div class="grid grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded shadow">
+          <h2 class="text-xl font-semibold mb-4">Game State</h2>
+          <div class="space-y-2">
+            <p><strong>Turn:</strong> <span id="currentTurn">-</span></p>
+            <p><strong>Dice:</strong> <span id="diceValue">-</span></p>
+            <p><strong>My ID:</strong> <span id="myId">-</span></p>
+            <p>
+              <strong>Winner:</strong>
+              <span id="winnerText" class="text-red-500 font-bold">-</span>
+            </p>
+          </div>
+
+          <div class="mt-6">
+            <h3 class="font-semibold mb-2">Actions</h3>
+            <div class="flex gap-2 mb-4">
+              <button
+                onclick="rollDice()"
+                class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+              >
+                Roll Dice
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                onclick="movePiece(0)"
+                class="bg-indigo-500 text-white px-2 py-1 rounded text-sm hover:bg-indigo-600"
+              >
+                Move Piece 0
+              </button>
+              <button
+                onclick="movePiece(1)"
+                class="bg-indigo-500 text-white px-2 py-1 rounded text-sm hover:bg-indigo-600"
+              >
+                Move Piece 1
+              </button>
+              <button
+                onclick="movePiece(2)"
+                class="bg-indigo-500 text-white px-2 py-1 rounded text-sm hover:bg-indigo-600"
+              >
+                Move Piece 2
+              </button>
+              <button
+                onclick="movePiece(3)"
+                class="bg-indigo-500 text-white px-2 py-1 rounded text-sm hover:bg-indigo-600"
+              >
+                Move Piece 3
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Board Viz -->
+        <div class="bg-white p-6 rounded shadow">
+          <h2 class="text-xl font-semibold mb-4">Pieces</h2>
+          <div id="piecesContainer" class="space-y-4 text-sm font-mono">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div
+        class="mt-8 bg-black text-green-400 p-4 rounded shadow h-48 overflow-y-auto font-mono text-xs"
+        id="logs"
+      >
+        <div>> Ready...</div>
+      </div>
+    </div>
+
+    <script>
+      const socket = io("http://localhost:3000", {
+        auth: {
+          userId: Math.random().toString(),
+        },
+      });
+      let myId = "";
+
+      socket.on("connect", () => {
+        document.getElementById("connectionStatus").innerText =
+          "Connected: " + socket.id;
+        myId = "user-" + socket.id;
+        document.getElementById("myId").innerText = myId;
+        log("Connected to server");
+      });
+
+      socket.on("PLAYER_JOINED", (data) => {
+        log(`Player joined: ${data.userId}`);
+      });
+
+      socket.on("GAME_STATE", (state) => {
+        renderState(state);
+        log("Game state updated");
+      });
+
+      socket.on("ERROR", (msg) => {
+        log("ERROR: " + msg);
+        alert("Error: " + msg);
+      });
+
+      socket.on("GAME_OVER", (data) => {
+        document.getElementById("winnerText").innerText = data.winner;
+        log("GAME OVER! Winner: " + data.winner);
+        alert("Winner is " + data.winner);
+      });
+
+      function joinRoom() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("JOIN_ROOM", { roomId, userId: Math.random().toString() });
+        log("Joining room: " + roomId);
+      }
+
+      function startGame() {
+        const roomId = document.getElementById("roomId").value;
+        // For testing, we just pass hardcoded player IDs.
+        // In reality, server should know who is in room.
+        // But LudoEngine needs explicit player list.
+        // Let's cheat and say "I am player 1, and wait... how do we get other ID?"
+
+        // Actually, let's just use 2 dummy IDs for testing flow if single player,
+        // OR we rely on the implementation where server tracks room members.
+        // My implementation of START_GAME expects { roomId, players }.
+        // I will use my ID and a dummy bot ID if I am alone, or just 2 fake IDs if debugging.
+
+        // BETTER: prompt for player IDs or just use self + "bot"
+        const players = [myId, "bot-1"];
+        log("Starting game with: " + players.join(", "));
+        socket.emit("START_GAME", { roomId, players });
+      }
+
+      function rollDice() {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("GAME_ACTION", { roomId, action: { type: "ROLL" } });
+      }
+
+      function movePiece(index) {
+        const roomId = document.getElementById("roomId").value;
+        socket.emit("GAME_ACTION", {
+          roomId,
+          action: { type: "MOVE", pieceIndex: index },
+        });
+      }
+
+      function renderState(state) {
+        console.log(state);
+        document.getElementById("currentTurn").innerText = state.turn;
+        document.getElementById("diceValue").innerText =
+          state.diceValue !== null ? state.diceValue : "Waiting for Roll";
+
+        const container = document.getElementById("piecesContainer");
+        container.innerHTML = "";
+
+        state.players.forEach((pId) => {
+          const pieces = state.pieces[pId];
+          const pDiv = document.createElement("div");
+          pDiv.className = "border-b pb-2";
+          if (pId === state.turn) pDiv.className += " bg-yellow-50";
+
+          let html = `<div class="font-bold ${
+            pId === myId ? "text-blue-600" : ""
+          }">${pId}</div>`;
+          pieces.forEach((p, idx) => {
+            const posText =
+              p.pos === null
+                ? "BASE"
+                : p.pos >= 100
+                ? "HOME (" + p.pos + ")"
+                : "Board (" + p.pos + ")";
+            html += `<div>Piece ${idx}: ${posText}</div>`;
+          });
+          pDiv.innerHTML = html;
+          container.appendChild(pDiv);
+        });
+      }
+
+      function log(msg) {
+        const logs = document.getElementById("logs");
+        const div = document.createElement("div");
+        div.innerText = "> " + msg;
+        logs.appendChild(div);
+        logs.scrollTop = logs.scrollHeight;
+      }
+    </script>
+  </body>
+</html>

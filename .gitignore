@@ -1,0 +1,68 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Build Artifacts
+/build/
+/dist/
+/out/
+/target/
+/bin/
+*.o
+*.a
+*.so
+*.lo
+*.la
+*.dll
+*.exe
+*.obj
+*.lib
+*.exp
+*.ilk
+*.pdb
+*.suo
+*.user
+*.ncb
+*.aps
+*.bsc
+*.sbr
+*.res
+
+# Dependency directories
+/node_modules/
+/vendor/
+
+# Logs and temporary files
+*.log
+*.tmp
+*~
+*.swp
+*.bak
+*.swo
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+.env
+
+# Package manager files (often committed, but sometimes ignored)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Test/coverage reports
+/coverage/
+
+# Database files
+*.sqlite
+*.db
+*.sql
+
+# Configuration files that may contain sensitive information
+# config.local.js
+# .env.local

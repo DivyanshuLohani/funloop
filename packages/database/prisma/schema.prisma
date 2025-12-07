@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          BigInt      @id @default(autoincrement())
+  username    String      @unique
+  avatar_url  String?
+  coins       Int         @default(0)
+  total_games Int         @default(0)
+  total_wins  Int         @default(0)
+  created_at  DateTime    @default(now())
+  
+  auth        UserAuth?
+  friends     Friend[]    @relation("UserFriends")
+  friendsOf   Friend[]    @relation("FriendUsers")
+  
+  wonGames    GameResult[] @relation("Winner")
+  
+  transactions Transaction[]
+  messages    ChatMessage[]
+}
+
+model UserAuth {
+  user_id       BigInt    @id
+  user          User      @relation(fields: [user_id], references: [id])
+  password_hash String
+  email         String?   @unique
+}
+
+model Friend {
+  user_id    BigInt
+  friend_id  BigInt
+  status     String
+  created_at DateTime  @default(now())
+
+  user   User @relation("UserFriends", fields: [user_id], references: [id])
+  friend User @relation("FriendUsers", fields: [friend_id], references: [id])
+
+  @@id([user_id, friend_id])
+}
+
+model GameResult {
+  id         BigInt    @id @default(autoincrement())
+  game_type  String
+  room_id    String
+  winner_id  BigInt?
+  winner     User?     @relation("Winner", fields: [winner_id], references: [id])
+  players    Json
+  started_at DateTime
+  ended_at   DateTime?
+}
+
+model Transaction {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  user       User     @relation(fields: [user_id], references: [id])
+  amount     Int
+  type       String
+  meta       Json
+  created_at DateTime @default(now())
+}
+
+model ChatMessage {
+  id         BigInt   @id @default(autoincrement())
+  room_id    String
+  sender_id  BigInt
+  sender     User     @relation(fields: [sender_id], references: [id])
+  message    String
+  created_at DateTime @default(now())
+}
