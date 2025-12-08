@@ -1,3 +1,7 @@
+// ----------------------------------------------------
+// Funloop – Prisma Database Schema
+// ----------------------------------------------------
+
 datasource db {
   provider = "postgresql"
 }
@@ -7,69 +11,70 @@ generator client {
 }
 
 model User {
-  id          BigInt      @id @default(autoincrement())
-  username    String      @unique
-  avatar_url  String?
-  coins       Int         @default(0)
-  total_games Int         @default(0)
-  total_wins  Int         @default(0)
-  created_at  DateTime    @default(now())
-  
-  auth        UserAuth?
-  friends     Friend[]    @relation("UserFriends")
-  friendsOf   Friend[]    @relation("FriendUsers")
-  
-  wonGames    GameResult[] @relation("Winner")
-  
-  transactions Transaction[]
-  messages    ChatMessage[]
+  id           String   @id @default(uuid())
+  username     String
+  isGuest      Boolean  @default(true)
+  deviceId     String?  @unique
+  email        String?  @unique
+  passwordHash String?
+  avatar       String? // optional profile picture
+  coins        Int      @default(0)
+  createdAt    DateTime @default(now())
+  lastActive   DateTime @updatedAt
+
+  // Relations
+  gameResults    GameResult[]
+  sessions       UserSession[]
+  friendsFrom    Friend[]       @relation("UserFriendsFrom")
+  friendsTo      Friend[]       @relation("UserFriendsTo")
+  matchHistories MatchHistory[]
 }
 
-model UserAuth {
-  user_id       BigInt    @id
-  user          User      @relation(fields: [user_id], references: [id])
-  password_hash String
-  email         String?   @unique
-}
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String
+  socketId  String? // last known socket ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model Friend {
-  user_id    BigInt
-  friend_id  BigInt
-  status     String
-  created_at DateTime  @default(now())
-
-  user   User @relation("UserFriends", fields: [user_id], references: [id])
-  friend User @relation("FriendUsers", fields: [friend_id], references: [id])
-
-  @@id([user_id, friend_id])
+  User User @relation(fields: [userId], references: [id])
 }
 
 model GameResult {
-  id         BigInt    @id @default(autoincrement())
-  game_type  String
-  room_id    String
-  winner_id  BigInt?
-  winner     User?     @relation("Winner", fields: [winner_id], references: [id])
-  players    Json
-  started_at DateTime
-  ended_at   DateTime?
+  id        String   @id @default(uuid())
+  roomId    String
+  gameType  String
+  winnerId  String?
+  startedAt DateTime
+  endedAt   DateTime
+
+  players Json // store snapshot: [{"userId": "...", "score": ...}]
+
+  // Relations
+  winner         User?          @relation(fields: [winnerId], references: [id])
+  matchHistories MatchHistory[]
 }
 
-model Transaction {
-  id         BigInt   @id @default(autoincrement())
-  user_id    BigInt
-  user       User     @relation(fields: [user_id], references: [id])
-  amount     Int
-  type       String
-  meta       Json
-  created_at DateTime @default(now())
+model Friend {
+  id          String   @id @default(uuid())
+  requesterId String
+  recipientId String
+  status      String // "pending", "accepted", "blocked"
+  createdAt   DateTime @default(now())
+
+  requester User @relation("UserFriendsFrom", fields: [requesterId], references: [id])
+  recipient User @relation("UserFriendsTo", fields: [recipientId], references: [id])
+
+  @@unique([requesterId, recipientId])
 }
 
-model ChatMessage {
-  id         BigInt   @id @default(autoincrement())
-  room_id    String
-  sender_id  BigInt
-  sender     User     @relation(fields: [sender_id], references: [id])
-  message    String
-  created_at DateTime @default(now())
+model MatchHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  gameType  String
+  resultId  String? // link to GameResult
+  createdAt DateTime @default(now())
+
+  User       User        @relation(fields: [userId], references: [id])
+  GameResult GameResult? @relation(fields: [resultId], references: [id])
 }
