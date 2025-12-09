@@ -6,11 +6,20 @@ import { redis } from "./redis";
 import { UserSocketMap } from "./sockets/UserSocketMap";
 import { registerRoomEvents } from "./sockets/roomEvents";
 import { registerGameEvents } from "./sockets/gameEvents";
+import { authRouter } from "./modules/auth/auth.router";
+import { verifyJwt } from "./lib/jwt";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
 
+/// START OF EXPRESS CONFIGURATION ///
+
 const app = express();
+app.use(express.json());
+app.use("/auth", authRouter);
+
+// END OF EXPRESS CONFIGURATION //
+
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
@@ -20,22 +29,26 @@ const io = new Server(httpServer, {
 io.adapter(createAdapter(pubClient, subClient));
 
 io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
+  // Verify socket and get user id
+  try {
+    const decoded = verifyJwt(socket.handshake.auth.token);
+    socket.data.userId = decoded.userId;
+    socket.data.isGuest = decoded.isGuest;
 
-  // TEMP: userId = socket.id (until authentication is added)
-  const userId = "user-" + socket.id;
-  socket.data.userId = userId;
+    UserSocketMap.bind(decoded.userId, socket.id);
 
-  UserSocketMap.bind(userId, socket.id);
+    // Register socket events
+    registerRoomEvents(io, socket);
+    registerGameEvents(io, socket);
 
-  // Register socket events
-  registerRoomEvents(io, socket);
-  registerGameEvents(io, socket);
-
-  socket.on("disconnect", () => {
-    UserSocketMap.unbind(userId);
-    console.log("Disconnected:", socket.id);
-  });
+    socket.on("disconnect", () => {
+      UserSocketMap.unbind(decoded.userId);
+      console.log("Disconnected:", socket.id);
+    });
+  } catch {
+    socket.emit("error", "Invalid Authentication");
+    socket.disconnect(true);
+  }
 });
 subClient.subscribe("match-found");
 
@@ -61,6 +74,6 @@ app.get("/", (req, res) => {
   res.send("Funloop Server Running");
 });
 
-httpServer.listen(3000, () => {
+httpServer.listen(3000, "0.0.0.0", () => {
   console.log("Funloop server running on port 3000");
 });

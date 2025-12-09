@@ -8,17 +8,22 @@
   },
   "dependencies": {
     "@funloop/game-core": "1.0.0",
+    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/client": "^7.1.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
+    "pg": "^8.16.3",
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.10",
