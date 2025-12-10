@@ -1,9 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
-import DeviceInfo from "react-native-device-info";
 import { initSocket } from "../services/socket";
 import { User } from "../types";
-import { api } from "../services/api";
+import { loginAsGuest } from "@/services/auth";
 
 
 export const AuthContext = createContext<{ user: User | null; token: string | null; loading: boolean } | null>(null);
@@ -31,7 +30,9 @@ export function AuthProvider({ children }: {
                     setLoading(false);
                 });
                 return;
-            } catch { }
+            } catch (e) {
+                console.log(e);
+            }
         }
 
         // If no valid token, create guest
@@ -39,16 +40,18 @@ export function AuthProvider({ children }: {
     }
 
     async function guestLogin() {
-        const deviceId = DeviceInfo.getUniqueId();
+        const res = await loginAsGuest();
 
-        const res = await api.post("/auth/guest", { deviceId });
+        if (!res) {
+            throw new Error("Failed to create guest");
+        }
 
-        await SecureStore.setItemAsync("token", res.data.token);
+        await SecureStore.setItemAsync("token", res.token);
 
-        setToken(res.data.token);
-        setUser(res.data.user);
+        setToken(res.token);
+        setUser(res.user);
 
-        initSocket(res.data.token);
+        initSocket(res.token);
 
         setLoading(false);
     }

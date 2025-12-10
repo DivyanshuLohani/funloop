@@ -8,6 +8,7 @@ import { registerRoomEvents } from "./sockets/roomEvents";
 import { registerGameEvents } from "./sockets/gameEvents";
 import { authRouter } from "./modules/auth/auth.router";
 import { verifyJwt } from "./lib/jwt";
+import healthRouter from "./modules/health/health.router";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -17,6 +18,10 @@ const subClient = redis.duplicate();
 const app = express();
 app.use(express.json());
 app.use("/auth", authRouter);
+app.use("/health", healthRouter);
+app.get("/", (req, res) => {
+  res.send("Funloop Server Running");
+});
 
 // END OF EXPRESS CONFIGURATION //
 
@@ -32,10 +37,13 @@ io.on("connection", (socket) => {
   // Verify socket and get user id
   try {
     const decoded = verifyJwt(socket.handshake.auth.token);
+
     socket.data.userId = decoded.userId;
     socket.data.isGuest = decoded.isGuest;
 
     UserSocketMap.bind(decoded.userId, socket.id);
+
+    console.log("Connected:", socket.id);
 
     // Register socket events
     registerRoomEvents(io, socket);
@@ -68,10 +76,6 @@ subClient.on("message", async (channel, msg) => {
       }
     }
   }
-});
-
-app.get("/", (req, res) => {
-  res.send("Funloop Server Running");
 });
 
 httpServer.listen(3000, "0.0.0.0", () => {

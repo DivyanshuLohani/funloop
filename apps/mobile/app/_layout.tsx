@@ -3,12 +3,17 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { AuthProvider } from '@/context/AuthContext';
+import { ServerData } from '@/types/settings';
+import { getDataFromServer } from '@/services/settings';
+import { DataProvider } from '@/context/DataProvider';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
+  const [data, setData] = useState<ServerData | null>(null);
 
   useEffect(() => {
     async function doAsyncStuff() {
@@ -23,6 +28,8 @@ export default function RootLayout() {
             setIsReady(true);
           }
         }
+        // const data = await getDataFromServer();
+        setData(data);
       } catch (e) {
         console.warn(e);
       } finally {
@@ -43,5 +50,13 @@ export default function RootLayout() {
     return null;
   }
 
-  return <Stack />;
+  return <AuthProvider>
+    <DataProvider initialData={data || undefined}>
+      <Stack screenOptions={{
+        headerShown: false
+      }} initialRouteName='(drawer)'>
+        <Stack.Screen name="(drawer)" />
+      </Stack>
+    </DataProvider>
+  </AuthProvider>;
 }

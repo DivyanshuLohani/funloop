@@ -15,7 +15,8 @@ async function getOrCreateDeviceId() {
 
 export async function checkLoginState() {
   const token = await SecureStore.getItemAsync("token");
-  if (token) {
+  const user = await SecureStore.getItemAsync("user");
+  if (token && user) {
     return true;
   }
   return false;
@@ -32,6 +33,10 @@ export async function loginAsGuest(): Promise<{
     if (response.data) {
       // Store the token in secure storage
       await SecureStore.setItemAsync("token", response.data.token);
+      await SecureStore.setItemAsync(
+        "user",
+        JSON.stringify(response.data.user)
+      );
       return { user: response.data.user, token: response.data.token };
     }
 
