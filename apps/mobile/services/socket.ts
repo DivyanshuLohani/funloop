@@ -8,6 +8,10 @@ export function initSocket(token: string) {
     auth: { token },
   });
 
+  socket.onAny((event, ...args) => {
+    console.log("Event:", event, args);
+  });
+
   return socket;
 }
 

@@ -4,8 +4,10 @@ import { GlobalStyles, Radius, Spacing, Typography, Colors } from '@/theme/theme
 import { LinearGradient } from 'expo-linear-gradient'
 import TopHeader from '@/components/TopHeader'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { getSocket } from '@/services/socket'
 
 const HomeScreen = () => {
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background, padding: Spacing.lg }}>
             <TopHeader />
@@ -105,7 +107,7 @@ const HomeScreen = () => {
                 </View>
 
                 {/* Buttons */}
-                <TouchableOpacity style={GlobalStyles.primaryButton}>
+                <TouchableOpacity style={GlobalStyles.primaryButton} onPress={() => getSocket()?.emit("QUEUE_JOIN", { gameType: "tictactoe" })}>
                     <Text style={Typography.subtitle}>Play Now</Text>
                 </TouchableOpacity>
 

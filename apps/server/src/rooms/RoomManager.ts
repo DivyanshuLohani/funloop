@@ -1,8 +1,9 @@
 import { redis } from "../redis";
+import { v4 as uuid } from "uuid";
 
 export class RoomManager {
   static async createRoom(gameType: string, players: string[]) {
-    const roomId = `room:${Date.now()}`;
+    const roomId = `room:${uuid()}`;
 
     const roomData = {
       id: roomId,

@@ -9,6 +9,7 @@ import { registerGameEvents } from "./sockets/gameEvents";
 import { authRouter } from "./modules/auth/auth.router";
 import { verifyJwt } from "./lib/jwt";
 import healthRouter from "./modules/health/health.router";
+import { registerMatchEvents } from "./sockets/matchEvents";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -33,7 +34,7 @@ const io = new Server(httpServer, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   // Verify socket and get user id
   try {
     const decoded = verifyJwt(socket.handshake.auth.token);
@@ -41,16 +42,17 @@ io.on("connection", (socket) => {
     socket.data.userId = decoded.userId;
     socket.data.isGuest = decoded.isGuest;
 
-    UserSocketMap.bind(decoded.userId, socket.id);
+    await UserSocketMap.bind(decoded.userId, socket.id);
 
     console.log("Connected:", socket.id);
 
     // Register socket events
+    registerMatchEvents(io, socket);
     registerRoomEvents(io, socket);
     registerGameEvents(io, socket);
 
-    socket.on("disconnect", () => {
-      UserSocketMap.unbind(decoded.userId);
+    socket.on("disconnect", async () => {
+      await UserSocketMap.unbind(decoded.userId);
       console.log("Disconnected:", socket.id);
     });
   } catch {
