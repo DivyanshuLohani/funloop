@@ -2,13 +2,13 @@ import { View, Text } from 'react-native'
 import React from 'react'
 import TopHeader from '@/components/TopHeader'
 
-const profile = () => {
+const settings = () => {
     return (
         <View>
             <TopHeader />
-            <Text>profile</Text>
+            <Text>settings</Text>
         </View>
     )
 }
 
-export default profile
+export default settings

@@ -30,11 +30,11 @@ export default function DrawerLayout() {
             />
             <Drawer.Screen
                 name="friends"
-                options={{ title: "Friends", drawerIcon: ({ color, size, focused }) => <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} /> }}
+                options={{ title: "Friends", drawerIcon: ({ color, size, focused }) => <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} /> }}
             />
             <Drawer.Screen
                 name="settings"
-                options={{ title: "Settings", drawerIcon: ({ color, size, focused }) => <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} /> }}
+                options={{ title: "Settings", drawerIcon: ({ color, size, focused }) => <Ionicons name={focused ? "settings" : "settings-outline"} size={size} color={color} /> }}
             />
         </Drawer>
     );
