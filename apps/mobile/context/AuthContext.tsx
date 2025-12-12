@@ -21,13 +21,15 @@ export function AuthProvider({ children }: {
 
     async function init() {
         const storedToken = await SecureStore.getItemAsync("token");
+        const storedUser = await SecureStore.getItemAsync("user");
 
-        if (storedToken) {
+        if (storedToken && storedUser) {
             try {
                 const socket = initSocket(storedToken);
                 socket.on("connect", () => {
                     setToken(storedToken);
                     setLoading(false);
+                    setUser(JSON.parse(storedUser));
                 });
                 return;
             } catch (e) {

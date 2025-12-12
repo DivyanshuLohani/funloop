@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import TopHeader from '@/components/TopHeader'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getSocket } from '@/services/socket'
+import { router } from 'expo-router';
+
 
 const HomeScreen = () => {
 
@@ -107,10 +109,16 @@ const HomeScreen = () => {
                 </View>
 
                 {/* Buttons */}
-                <TouchableOpacity style={GlobalStyles.primaryButton} onPress={() => getSocket()?.emit("QUEUE_JOIN", { gameType: "tictactoe" })}>
+                <TouchableOpacity
+                    style={GlobalStyles.primaryButton}
+                    onPress={() => {
+                        const socket = getSocket();
+                        socket?.emit("QUEUE_JOIN", { gameType: "tictactoe" });
+                        router.push("/matchmaking");
+                    }}
+                >
                     <Text style={Typography.subtitle}>Play Now</Text>
                 </TouchableOpacity>
-
                 <View style={GlobalStyles.rowBetween}>
                     <TouchableOpacity style={GlobalStyles.secondaryButton}>
                         <Text style={{ ...Typography.body, color: Colors.textPrimary }}>Join Room</Text>
