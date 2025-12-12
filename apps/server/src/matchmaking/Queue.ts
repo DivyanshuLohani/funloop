@@ -1,4 +1,5 @@
 import { redis } from "../redis";
+import { logger } from "@funloop/logger";
 
 export class MatchmakingQueue {
   static queueKey(gameType: string, size: number) {
@@ -10,13 +11,13 @@ export class MatchmakingQueue {
   }
 
   static async joinQueue(gameType: string, size: number, userId: string) {
-    console.log("Joining queue", gameType, size, userId);
+    logger.info(`Joining queue ${gameType} ${size} ${userId}`);
     const queue = await this.getPlayersInQueue(gameType, size);
     if (queue.includes(userId)) {
-      console.log("Player is already in the queue");
+      logger.info(`Player ${userId} is already in the queue`);
       return;
     }
-    console.log("Player joined queue", gameType, size, userId);
+    logger.info(`Player ${userId} joined queue ${gameType} ${size}`);
     await redis.lpush(this.queueKey(gameType, size), userId);
   }
 

@@ -10,7 +10,8 @@
     "baseUrl": ".",
     "paths": {
       "@funloop/game-core/*": ["packages/game-core/src/*"],
-      "@funloop/database/*": ["packages/database/src/*"]
+      "@funloop/database/*": ["packages/database/src/*"],
+      "@funloop/logger/*": ["packages/logger/src/*"]
     }
   }
 }

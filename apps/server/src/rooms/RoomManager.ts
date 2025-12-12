@@ -1,5 +1,4 @@
 import { redis } from "../redis";
-import { v4 as uuid } from "uuid";
 
 const generateRoomCode = () => {
   let code = "";

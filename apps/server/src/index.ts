@@ -10,6 +10,7 @@ import { authRouter } from "./modules/auth/auth.router";
 import { verifyJwt } from "./lib/jwt";
 import healthRouter from "./modules/health/health.router";
 import { registerMatchEvents } from "./sockets/matchEvents";
+import { logger } from "@funloop/logger";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -44,7 +45,7 @@ io.on("connection", async (socket) => {
 
     await UserSocketMap.bind(decoded.userId, socket.id);
 
-    console.log("Connected:", socket.id);
+    logger.info(`Connected: ${socket.id}`);
 
     // Register socket events
     registerMatchEvents(io, socket);
@@ -53,7 +54,7 @@ io.on("connection", async (socket) => {
 
     socket.on("disconnect", async () => {
       await UserSocketMap.unbind(decoded.userId);
-      console.log("Disconnected:", socket.id);
+      logger.info(`Disconnected: ${socket.id}`);
     });
   } catch {
     socket.emit("error", "Invalid Authentication");
@@ -73,7 +74,7 @@ subClient.on("message", async (channel, msg) => {
         const socket = io.sockets.sockets.get(socketId);
         if (socket) {
           socket.join(roomId);
-          console.log(`Auto-joined user ${userId} into ${roomId}`);
+          logger.info(`Auto-joined user ${userId} into ${roomId}`);
         }
       }
     }
@@ -81,5 +82,5 @@ subClient.on("message", async (channel, msg) => {
 });
 
 httpServer.listen(3000, "0.0.0.0", () => {
-  console.log("Funloop server running on port 3000");
+  logger.info("Funloop server running on port 3000");
 });

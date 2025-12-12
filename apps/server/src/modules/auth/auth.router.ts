@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthService } from "./auth.service";
+import { logger } from "@funloop/logger";
 
 export const authRouter = Router();
 
@@ -7,14 +8,11 @@ export const authRouter = Router();
  * Guest login
  */
 authRouter.post("/guest", async (req, res) => {
-  console.log("Guest login");
+  logger.info("Registering new Device");
   try {
     const { deviceId } = req.body;
-    console.log("Device ID:", deviceId);
     if (!deviceId) return res.status(400).json({ error: "deviceId required" });
-
     const result = await AuthService.loginGuest(deviceId);
-    console.log("Result:", result);
     res.json(result);
   } catch (e) {
     res

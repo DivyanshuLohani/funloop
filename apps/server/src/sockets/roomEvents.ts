@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { RoomManager } from "../rooms/RoomManager";
 import { redis } from "../redis";
+import { logger } from "@funloop/logger";
 
 export function registerRoomEvents(io: Server, socket: Socket) {
   socket.on("JOIN_ROOM", async ({ roomId }) => {
@@ -23,7 +24,7 @@ export function registerRoomEvents(io: Server, socket: Socket) {
       userId,
     });
 
-    console.log(`User ${userId} joined room ${roomId}`);
+    logger.info(`User ${userId} joined room ${roomId}`);
   });
 
   socket.on("LEAVE_ROOM", async ({ roomId }) => {
@@ -38,6 +39,6 @@ export function registerRoomEvents(io: Server, socket: Socket) {
       userId,
     });
 
-    console.log(`User ${userId} left room ${roomId}`);
+    logger.info(`User ${userId} left room ${roomId}`);
   });
 }

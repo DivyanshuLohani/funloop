@@ -1,10 +1,11 @@
 import { redis } from "../redis";
 import { LudoEngine, LudoState } from "@funloop/game-core/ludo/LudoEngine";
+import { logger } from "@funloop/logger";
 
 const engine = new LudoEngine();
 
 async function timerLoop() {
-  console.log("Turn timer worker running...");
+  logger.info("Turn timer worker running...");
 
   while (true) {
     const rooms = await redis.keys("game:*");
@@ -20,7 +21,7 @@ async function timerLoop() {
       };
 
       if (Date.now() > game.turnDeadline) {
-        console.log(`Auto-playing for room ${key}`);
+        logger.info(`Auto-playing for room ${key}`);
 
         const newState = engine.autoPlay(game.state, game.turn);
 

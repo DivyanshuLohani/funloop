@@ -1,9 +1,10 @@
 import { MatchmakingQueue } from "../matchmaking/Queue";
 import { RoomManager } from "../rooms/RoomManager";
 import { redis } from "../redis";
+import { logger } from "@funloop/logger";
 
 async function matchmakingLoop() {
-  console.log("Matchmaking worker running...");
+  logger.info("Matchmaking worker running...");
 
   while (true) {
     const gameType = "tictactoe";
@@ -11,9 +12,11 @@ async function matchmakingLoop() {
 
     const length = await MatchmakingQueue.queueLength(gameType, size);
     if (length > 0) {
-      console.log(
-        "Player joined queue",
-        await MatchmakingQueue.getPlayersInQueue(gameType, size)
+      logger.info(
+        `Player joined queue ${gameType} ${size} ${await MatchmakingQueue.getPlayersInQueue(
+          gameType,
+          size
+        )}`
       );
     }
 

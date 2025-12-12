@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { LudoEngine, LudoAction, LudoState } from "@funloop/game-core";
 import { redis } from "../redis";
+import { logger } from "@funloop/logger";
 
 const engine = new LudoEngine();
 
@@ -22,7 +23,7 @@ export function registerGameEvents(io: Server, socket: Socket) {
       await redis.set(key, engine.serializeState(state));
 
       io.to(roomId).emit("GAME_STATE", state);
-      console.log(`Game started in room ${roomId}`);
+      logger.info(`Game started in room ${roomId}`);
     }
   );
 
@@ -51,7 +52,7 @@ export function registerGameEvents(io: Server, socket: Socket) {
 
       // Validate Action
       if (!engine.validateAction(state, action)) {
-        console.log(`Invalid action by ${userId}:`, action);
+        logger.info(`Invalid action by ${userId}: ${action}`);
         return socket.emit("ERROR", "Invalid action");
       }
 
