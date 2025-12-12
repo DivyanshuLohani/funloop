@@ -7,7 +7,5 @@ export function registerMatchEvents(io: Server, socket: Socket) {
     if (!userId) return;
 
     await MatchmakingQueue.joinQueue(gameType, 2, userId);
-
-    console.log(`User ${userId} joined ${gameType} queue.`);
   });
 }

@@ -1,14 +1,26 @@
 import { redis } from "../redis";
 import { v4 as uuid } from "uuid";
 
+const generateRoomCode = () => {
+  let code = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (let i = 0; i < 6; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+};
+
 export class RoomManager {
   static async createRoom(gameType: string, players: string[]) {
-    const roomId = `room:${uuid()}`;
+    const roomId = `room:${generateRoomCode()}`;
 
     const roomData = {
       id: roomId,
       gameType,
       players,
+      ready_players: [],
+      status: "waiting",
+      startedAt: null,
       createdAt: Date.now(),
     };
 

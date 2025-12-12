@@ -10,7 +10,12 @@ async function matchmakingLoop() {
     const size = 2; // 2-player ludo for now
 
     const length = await MatchmakingQueue.queueLength(gameType, size);
-    console.log("Matchmaking queue length:", length);
+    if (length > 0) {
+      console.log(
+        "Player joined queue",
+        await MatchmakingQueue.getPlayersInQueue(gameType, size)
+      );
+    }
 
     if (length >= size) {
       const players = await MatchmakingQueue.popPlayers(gameType, size);
