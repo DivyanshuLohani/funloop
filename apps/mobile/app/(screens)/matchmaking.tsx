@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSocket } from "@/services/socket";
 
 import MMHeader from "@/components/matchmaking/MMHeader";
-import MMSearchIcon from "@/components/matchmaking/MMGameTypeIcon";
 import MMPlayerSlots from "@/components/matchmaking/MMPlayerSlots";
 import MMProgressBar from "@/components/matchmaking/MMProgressBar";
 import MMCancelButton from "@/components/matchmaking/MMCancelButton";
@@ -12,7 +11,6 @@ import MMCancelButton from "@/components/matchmaking/MMCancelButton";
 import { Colors, Spacing } from "@/theme/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text } from "react-native";
 import MMGameTypeIcon from "@/components/matchmaking/MMGameTypeIcon";
 
 export default function MatchmakingScreen() {
@@ -41,13 +39,13 @@ export default function MatchmakingScreen() {
             const opponent = players.find((p: string) => p !== userId);
             console.log("Opponent:", opponent);
 
-            // // Navigate after short delay
-            // setTimeout(() => {
-            //     router.replace({
-            //         pathname: "/game",
-            //         params: { roomId }
-            //     });
-            // }, 1200);
+            // Navigate after short delay
+            setTimeout(() => {
+                router.replace({
+                    pathname: "/game",
+                    params: { roomId }
+                });
+            }, 1200);
         });
 
         // If your backend emits "queue_status" or something, 
