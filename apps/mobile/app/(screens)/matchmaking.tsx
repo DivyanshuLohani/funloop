@@ -1,0 +1,92 @@
+import React, { useEffect, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "@/hooks/useAuth";
+import { getSocket } from "@/services/socket";
+
+import MMHeader from "@/components/matchmaking/MMHeader";
+import MMSearchIcon from "@/components/matchmaking/MMGameTypeIcon";
+import MMPlayerSlots from "@/components/matchmaking/MMPlayerSlots";
+import MMProgressBar from "@/components/matchmaking/MMProgressBar";
+import MMCancelButton from "@/components/matchmaking/MMCancelButton";
+
+import { Colors, Spacing } from "@/theme/theme";
+import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text } from "react-native";
+import MMGameTypeIcon from "@/components/matchmaking/MMGameTypeIcon";
+
+export default function MatchmakingScreen() {
+    const auth = useAuth();
+    const userId = auth?.user?.id;
+    const { gameType, players, mode } = useLocalSearchParams();
+
+    const [status, setStatus] = useState("Finding players...");
+    const [playersFound, setPlayersFound] = useState(1); // at least yourself
+    const totalPlayers = Number(players) || 2;
+    const [roomId, setRoomId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const socket = getSocket();
+        if (!socket || !userId) return;
+
+        // Listen for match found
+        socket.on("MATCH_FOUND", ({ roomId, players }) => {
+            setStatus("Match Found!");
+            setRoomId(roomId);
+
+            // Count players found
+            setPlayersFound(players.length);
+
+            // Optional: Find your opponent (your previous code)
+            const opponent = players.find((p: string) => p !== userId);
+            console.log("Opponent:", opponent);
+
+            // // Navigate after short delay
+            // setTimeout(() => {
+            //     router.replace({
+            //         pathname: "/game",
+            //         params: { roomId }
+            //     });
+            // }, 1200);
+        });
+
+        // If your backend emits "queue_status" or something, 
+        // integrate here to update playersFound dynamically.
+
+        return () => {
+            socket.off("MATCH_FOUND");
+        };
+    }, [userId]);
+
+    return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+
+            <LinearGradient
+                colors={[Colors.gradientStart, Colors.gradientEnd]}
+                style={{ flex: 1, padding: Spacing.lg }}
+            >
+                {/* Top Header */}
+                <MMHeader onClose={() => router.back()} />
+
+                <MMGameTypeIcon gameType={gameType as string} />
+
+                {/* Players Loading UI */}
+                <MMPlayerSlots
+                    total={totalPlayers}
+                    found={playersFound}
+                />
+
+                {/* Progress Bar */}
+                <MMProgressBar
+                    total={totalPlayers}
+                    found={playersFound}
+                />
+
+                {/* Cancel Button */}
+                <MMCancelButton
+                    onCancel={() => router.back()}
+                />
+            </LinearGradient>
+        </SafeAreaView>
+    );
+}

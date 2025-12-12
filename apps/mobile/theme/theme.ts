@@ -11,6 +11,10 @@ export const Colors = {
   accentGreen: "#2DCF2D",
   borderLight: "#3A4055",
   gold: "#FFD700",
+
+  gradientStart: "#0B0F19",
+  gradientEnd: "#131C4A",
+  gradientColors: ["#0B0F19", "#131C4A"],
 };
 
 export const Spacing = {

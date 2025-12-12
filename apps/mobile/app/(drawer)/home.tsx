@@ -114,7 +114,14 @@ const HomeScreen = () => {
                     onPress={() => {
                         const socket = getSocket();
                         socket?.emit("QUEUE_JOIN", { gameType: "tictactoe" });
-                        router.push("/matchmaking");
+                        router.push({
+                            pathname: "/matchmaking",
+                            params: {
+                                gameType: "tictactoe",
+                                players: 2,
+                                mode: "quick"
+                            }
+                        });
                     }}
                 >
                     <Text style={Typography.subtitle}>Play Now</Text>
