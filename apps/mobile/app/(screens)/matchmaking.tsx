@@ -12,48 +12,39 @@ import { Colors, Spacing } from "@/theme/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MMGameTypeIcon from "@/components/matchmaking/MMGameTypeIcon";
+import { useMatch } from "@/context/MatchContext";
+import { PlayerSnapshot } from "@funloop/types";
 
 export default function MatchmakingScreen() {
     const auth = useAuth();
     const userId = auth?.user?.id;
-    const { gameType, players, mode } = useLocalSearchParams();
-
-    const [status, setStatus] = useState("Finding players...");
+    const { gameType, players } = useLocalSearchParams();
     const [playersFound, setPlayersFound] = useState(1); // at least yourself
     const totalPlayers = Number(players) || 2;
-    const [roomId, setRoomId] = useState<string | null>(null);
+    const { setMatch } = useMatch();
 
     useEffect(() => {
         const socket = getSocket();
         if (!socket || !userId) return;
 
         // Listen for match found
-        socket.on("MATCH_FOUND", ({ roomId, players }) => {
-            setStatus("Match Found!");
-            setRoomId(roomId);
-
+        socket.on("MATCH_FOUND", ({ roomId, players, playerMap }) => {
             // Count players found
             setPlayersFound(players.length);
-
-            // Optional: Find your opponent (your previous code)
-            const opponent = players.find((p: string) => p !== userId);
-            console.log("Opponent:", opponent);
-
+            setMatch({ roomId, playersMap: playerMap as Record<string, PlayerSnapshot> });
             // Navigate after short delay
             setTimeout(() => {
                 router.replace({
                     pathname: "/game",
-                    params: { roomId }
+                    params: { roomId, playerMap }
                 });
             }, 1200);
         });
 
-        // If your backend emits "queue_status" or something, 
-        // integrate here to update playersFound dynamically.
-
         return () => {
             socket.off("MATCH_FOUND");
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     return (

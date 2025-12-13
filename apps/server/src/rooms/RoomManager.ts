@@ -1,4 +1,5 @@
 import { redis } from "../redis";
+import { RedisGameRoom } from "../types/RedisGameRoom";
 
 const generateRoomCode = () => {
   let code = "";
@@ -13,13 +14,14 @@ export class RoomManager {
   static async createRoom(gameType: string, players: string[]) {
     const roomId = `room:${generateRoomCode()}`;
 
-    const roomData = {
+    const roomData: RedisGameRoom = {
       id: roomId,
       gameType,
       size: 2,
       players,
       ready_players: [],
       status: "waiting",
+      rematch_requests: [],
       startedAt: null,
       game_state: null,
       createdAt: Date.now(),
@@ -34,11 +36,11 @@ export class RoomManager {
     if (!room) return;
 
     room.ready_players.push(userId);
-    await redis.set(roomId, JSON.stringify(room));
+    await this.setRoom(roomId, room);
 
     if (room.ready_players.length === room.size) {
       room.status = "started";
-      await redis.set(roomId, JSON.stringify(room));
+      await this.setRoom(roomId, room);
       this.startGame(roomId);
     }
   }
@@ -47,21 +49,28 @@ export class RoomManager {
     const room = await this.getRoom(roomId);
     if (!room) return;
     room.status = "started";
-    await redis.set(roomId, JSON.stringify(room));
+    await this.setRoom(roomId, room);
   }
 
-  static async getRoom(roomId: string) {
+  static async setRoom(roomId: string, newState: RedisGameRoom) {
+    await redis.set(roomId, JSON.stringify(newState));
+  }
+
+  static async getRoom(roomId: string): Promise<RedisGameRoom | null> {
     const raw = await redis.get(roomId);
     return raw ? JSON.parse(raw) : null;
   }
 
-  static async addPlayer(roomId: string, userId: string) {
+  static async addPlayer(
+    roomId: string,
+    userId: string
+  ): Promise<RedisGameRoom | null> {
     const room = await this.getRoom(roomId);
     if (!room) return null;
 
     if (!room.players.includes(userId)) {
       room.players.push(userId);
-      await redis.set(roomId, JSON.stringify(room));
+      await this.setRoom(roomId, room);
     }
 
     return room;

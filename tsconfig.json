@@ -11,7 +11,8 @@
     "paths": {
       "@funloop/game-core/*": ["packages/game-core/src/*"],
       "@funloop/database/*": ["packages/database/src/*"],
-      "@funloop/logger/*": ["packages/logger/src/*"]
+      "@funloop/logger/*": ["packages/logger/src/*"],
+      "@funloop/types/*": ["packages/types/src/*"]
     }
   }
 }

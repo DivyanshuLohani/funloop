@@ -11,6 +11,7 @@ import { verifyJwt } from "./lib/jwt";
 import healthRouter from "./modules/health/health.router";
 import { registerMatchEvents } from "./sockets/matchEvents";
 import { logger } from "@funloop/logger";
+import { registerMatchFoundSubscriber } from "./subscribers/matchFound.subscriber";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -61,25 +62,8 @@ io.on("connection", async (socket) => {
     socket.disconnect(true);
   }
 });
-subClient.subscribe("match-found");
 
-subClient.on("message", async (channel, msg) => {
-  if (channel === "match-found") {
-    const { roomId, players } = JSON.parse(msg);
-
-    for (const userId of players) {
-      const socketId = await UserSocketMap.getSocketId(userId);
-      if (socketId) {
-        io.to(socketId).emit("MATCH_FOUND", { roomId, players });
-        const socket = io.sockets.sockets.get(socketId);
-        if (socket) {
-          socket.join(roomId);
-          logger.info(`Auto-joined user ${userId} into ${roomId}`);
-        }
-      }
-    }
-  }
-});
+registerMatchFoundSubscriber(io, subClient);
 
 httpServer.listen(3000, "0.0.0.0", () => {
   logger.info("Funloop server running on port 3000");

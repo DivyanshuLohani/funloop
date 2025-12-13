@@ -1,11 +1,12 @@
-import { LudoState } from "@funloop/game-core";
-
 export interface RedisGameRoom {
-  roomId: string;
+  id: string;
   gameType: string;
+  size: number;
   players: string[];
-  state: LudoState;
-  turn: string;
-  turnDeadline: number;
+  ready_players: string[];
+  status: string;
+  rematch_requests: string[]; // userIds who clicked rematch
+  startedAt: number | null;
+  game_state: any;
   createdAt: number;
 }

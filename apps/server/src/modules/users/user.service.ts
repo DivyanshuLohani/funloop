@@ -1,4 +1,5 @@
 import { prisma } from "@funloop/database";
+import { PlayerSnapshot } from "@funloop/types/index";
 import bcrypt from "bcryptjs";
 
 export const UserService = {
@@ -47,5 +48,43 @@ export const UserService = {
         isGuest: false,
       },
     });
+  },
+
+  getUserSnapshot: async (userId: string): Promise<PlayerSnapshot | null> => {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, avatar: true, isGuest: true },
+    });
+    if (!user) return null;
+    return {
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      isGuest: user.isGuest,
+      games: 0,
+      wins: 0,
+    };
+  },
+
+  getUserSnapshotMany: async (
+    userIds: string[]
+  ): Promise<Record<string, PlayerSnapshot>> => {
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, username: true, avatar: true, isGuest: true },
+    });
+    // Create a map like this id: data
+    const playerMap = users.reduce((acc, user) => {
+      acc[user.id] = {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar,
+        isGuest: user.isGuest,
+        games: 0,
+        wins: 0,
+      };
+      return acc;
+    }, {} as Record<string, PlayerSnapshot>);
+    return playerMap;
   },
 };

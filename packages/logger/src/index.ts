@@ -1,7 +1,7 @@
 import path from "path";
 import winston from "winston";
 
-const LOG_DIR = path.resolve(__dirname, "../../logs");
+const LOG_DIR = path.resolve(__dirname, "../../../logs");
 
 const myFormat = winston.format.printf((info) => {
   return `[${info.timestamp}] ${info.level} : ${info.message}`;

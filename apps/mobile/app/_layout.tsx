@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ServerData } from '@/types/settings';
 import { getDataFromServer } from '@/services/settings';
 import { DataProvider } from '@/context/DataProvider';
+import { MatchProvider } from '@/context/MatchContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -52,11 +53,13 @@ export default function RootLayout() {
 
   return <AuthProvider>
     <DataProvider initialData={data || undefined}>
-      <Stack screenOptions={{
-        headerShown: false
-      }} initialRouteName='(drawer)'>
-        <Stack.Screen name="(drawer)" />
-      </Stack>
+      <MatchProvider>
+        <Stack screenOptions={{
+          headerShown: false
+        }} initialRouteName='(drawer)'>
+          <Stack.Screen name="(drawer)" />
+        </Stack>
+      </MatchProvider>
     </DataProvider>
   </AuthProvider>;
 }

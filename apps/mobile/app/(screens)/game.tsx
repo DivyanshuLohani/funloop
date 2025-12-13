@@ -1,5 +1,5 @@
 import { Text } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { getSocket } from "@/services/socket";
 import { Colors } from "@/theme/theme";
@@ -12,15 +12,19 @@ import { WinnerModal } from "@/components/tictactoe/WinnerModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TicTacToeState } from "@funloop/game-core";
 import { useAuth } from "@/hooks/useAuth";
+import { useMatch } from "@/context/MatchContext";
 
 export default function GameScreen() {
     const { roomId } = useLocalSearchParams();
     const socket = getSocket();
     const auth = useAuth();
+    const { playersMap, setMatch } = useMatch();
+
 
     const [gameState, setGameState] = useState<TicTacToeState | null>(null);
     const [status, setStatus] = useState("Waiting for players...");
     const [showWinner, setShowWinner] = useState(false);
+    const [waitingForRematch, setWaitingForRematch] = useState(false);
 
     useEffect(() => {
         if (!socket) return;
@@ -31,9 +35,27 @@ export default function GameScreen() {
             setStatus("All players ready...");
         });
 
-        socket.on("GAME_START", ({ state }) => {
-            setStatus("Game Started");
+        socket.on("REMATCH_STATUS", ({ accepted, total }) => {
+            setWaitingForRematch(true);
+        });
+
+        socket.on("REMATCH_START", ({ state }) => {
             setGameState(state);
+            setShowWinner(false);
+            setWaitingForRematch(false);
+
+        });
+
+
+        socket.on("GAME_START", ({ state, playersMap: serverMap }) => {
+            setGameState(state);
+
+            if (serverMap) {
+                setMatch({
+                    roomId: roomId as string,
+                    playersMap: serverMap
+                });
+            }
         });
 
         socket.on("GAME_STATE_UPDATE", (state) => {
@@ -63,22 +85,28 @@ export default function GameScreen() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameState?.winner]);
 
+
     return (
         <SafeAreaView
             style={{ flex: 1, backgroundColor: Colors.background, padding: 20 }}
         >
             <GameHeader />
 
-            <ScoreBar you={2} rival={1} />
+            <ScoreBar playerMap={playersMap ?? {}} />
 
-            <TurnIndicator
+
+            {!waitingForRematch && <TurnIndicator
                 text={
                     gameState?.turn === auth?.user?.id
                         ? "Your Turn"
                         : "Waiting for rival"
                 }
-            />
-
+            />}
+            {waitingForRematch && <TurnIndicator
+                text={
+                    "Waiting for rival to accept rematch"
+                }
+            />}
             {gameState ? (
                 <TicTacToeBoard
                     board={gameState.board}
@@ -100,7 +128,16 @@ export default function GameScreen() {
                 visible={showWinner}
                 winnerId={gameState?.winner ?? null}
                 isYou={gameState?.winner === auth?.user?.id}
-                onClose={() => setShowWinner(false)}
+                onClose={() => {
+                    setShowWinner(false);
+                    router.replace({
+                        pathname: "/(drawer)/home"
+                    });
+                }}
+                onRematch={() => {
+                    setShowWinner(false);
+                    socket?.emit("REQUEST_REMATCH", { roomId });
+                }}
             />
         </SafeAreaView>
     );

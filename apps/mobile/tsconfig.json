@@ -4,7 +4,10 @@
     "strict": true,
     "paths": {
       "@/*": ["./*"],
-      "@funloop/game-core/*": ["../../packages/game-core/src/*"]
+      "@funloop/game-core": ["../../packages/game-core/src/index.ts"],
+      "@funloop/game-core/*": ["../../packages/game-core/src/*"],
+      "@funloop/types": ["../../packages/types/src/index.ts"],
+      "@funloop/types/*": ["../../packages/types/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]

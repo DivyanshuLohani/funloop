@@ -6,11 +6,13 @@ interface Props {
     winnerId: string | null;
     isYou: boolean;
     onClose: () => void;
+    onRematch: () => void;
 }
 
-export function WinnerModal({ visible, winnerId, isYou, onClose }: Props) {
+export function WinnerModal({ visible, winnerId, isYou, onClose, onRematch }: Props) {
+    const isDraw = winnerId === "draw";
     return (
-        <Modal transparent visible={visible} animationType="fade">
+        <Modal transparent visible={visible || isDraw} animationType="fade">
             <View
                 style={{
                     flex: 1,
@@ -36,10 +38,11 @@ export function WinnerModal({ visible, winnerId, isYou, onClose }: Props) {
                             marginBottom: Spacing.md,
                         }}
                     >
-                        {isYou ? "🎉 You Won!" : "😔 You Lost"}
+                        {isYou && !isDraw ? "🎉 You Won!" : isDraw ? "Draw" : "😔 You Lost"}
+
                     </Text>
 
-                    <Text
+                    {!isDraw && <Text
                         style={{
                             color: Colors.textSecondary,
                             marginBottom: Spacing.lg,
@@ -48,20 +51,37 @@ export function WinnerModal({ visible, winnerId, isYou, onClose }: Props) {
                     >
                         Winner: {winnerId}
                     </Text>
+                    }
+                    {/* Add two buttons side by side close and play again */}
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: Spacing.md }}>
+                        <TouchableOpacity
+                            onPress={onClose}
+                            style={{
+                                backgroundColor: Colors.accentBlue,
+                                paddingVertical: Spacing.md,
+                                paddingHorizontal: Spacing.xl,
+                                borderRadius: Radius.full,
+                            }}
+                        >
+                            <Text style={{ color: Colors.textPrimary, fontWeight: "700" }}>
+                                Close
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={onRematch}
+                            style={{
+                                backgroundColor: Colors.accentBlue,
+                                paddingVertical: Spacing.md,
+                                paddingHorizontal: Spacing.xl,
+                                borderRadius: Radius.full,
+                            }}
+                        >
+                            <Text style={{ color: Colors.textPrimary, fontWeight: "700" }}>
+                                Play Again
+                            </Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={onClose}
-                        style={{
-                            backgroundColor: Colors.accentBlue,
-                            paddingVertical: Spacing.md,
-                            paddingHorizontal: Spacing.xl,
-                            borderRadius: Radius.full,
-                        }}
-                    >
-                        <Text style={{ color: Colors.textPrimary, fontWeight: "700" }}>
-                            Close
-                        </Text>
-                    </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </Modal>
