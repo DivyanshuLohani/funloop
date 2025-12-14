@@ -12,6 +12,7 @@ import healthRouter from "./modules/health/health.router";
 import { registerMatchEvents } from "./sockets/matchEvents";
 import { logger } from "@funloop/logger";
 import { registerMatchFoundSubscriber } from "./subscribers/matchFound.subscriber";
+import { handleReconnection } from "./sockets/reconnection";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -48,6 +49,8 @@ io.on("connection", async (socket) => {
 
     logger.info(`Connected: ${socket.id}`);
 
+    // 🔁 Reconnection check
+    handleReconnection(io, socket);
     // Register socket events
     registerMatchEvents(io, socket);
     registerRoomEvents(io, socket);

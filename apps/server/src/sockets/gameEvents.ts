@@ -31,12 +31,20 @@ export function registerGameEvents(io: Server, socket: Socket) {
 
     // Apply engine logic
     const newState = engine.applyAction(state, action);
+    const isGameOver = engine.isGameOver(newState);
 
     // Save updated game state
     await redis.set(`game:${roomId}`, JSON.stringify(newState));
 
     // Broadcast to all players in the room
     io.to(roomId).emit("GAME_STATE_UPDATE", newState);
+
+    // If game is over, emit game over event
+    if (isGameOver) {
+      io.to(roomId).emit("GAME_OVER", newState);
+      // Publish to redis
+      await redis.publish("game-ended", JSON.stringify({ roomId }));
+    }
   });
   socket.on("REQUEST_REMATCH", async ({ roomId }) => {
     logger.info(`REQUEST_REMATCH: ${roomId}`);

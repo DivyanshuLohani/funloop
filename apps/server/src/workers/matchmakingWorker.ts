@@ -13,7 +13,7 @@ async function matchmakingLoop() {
     const length = await MatchmakingQueue.queueLength(gameType, size);
     if (length > 0) {
       logger.info(
-        `Player joined queue ${gameType} ${size} ${await MatchmakingQueue.getPlayersInQueue(
+        `Player joined queue ${gameType} ${size}  ${await MatchmakingQueue.getPlayersInQueue(
           gameType,
           size
         )}`

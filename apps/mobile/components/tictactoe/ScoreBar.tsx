@@ -1,16 +1,8 @@
 import { View, Text, Image } from "react-native";
 import { Colors, Radius, Spacing } from "@/theme/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { PlayerSnapshot } from "@funloop/types";
 
-export type PlayerSnapshot = {
-    id: string;
-    username: string;
-    avatar: string | null;
-    games: number;
-    wins: number;
-    isGuest: boolean;
-    score?: number;
-};
 
 export type PlayerMap = Record<string, PlayerSnapshot>;
 
@@ -20,10 +12,23 @@ export function ScoreBar({ playerMap }: { playerMap: PlayerMap }) {
 
     const players = Object.values(playerMap);
 
+    if (players.length < 2) return null;
+
+    const getSymbol = (playerId: string) => {
+        const index = players.findIndex(p => p.id === playerId);
+        return index === 0 ? "X" : "O";
+    };
+
+    const getSymbolColor = (symbol: "X" | "O") =>
+        symbol === "X" ? "#5BFF5B" : "#B14CFF";
+
     const me = players.find(p => p.id === myId);
     const rival = players.find(p => p.id !== myId);
 
     if (!me || !rival) return null;
+
+    const mySymbol = getSymbol(me.id);
+    const rivalSymbol = getSymbol(rival.id);
 
     return (
         <View
@@ -56,16 +61,39 @@ export function ScoreBar({ playerMap }: { playerMap: PlayerMap }) {
                 />
 
                 <View>
-                    <Text
-                        style={{
-                            color: Colors.textPrimary,
-                            fontWeight: "600",
-                        }}
-                    >
-                        You
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Text
+                            style={{
+                                color: Colors.textPrimary,
+                                fontWeight: "600",
+                                marginRight: 6,
+                            }}
+                        >
+                            You
+                        </Text>
 
-
+                        {/* X / O badge */}
+                        <View
+                            style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: 11,
+                                backgroundColor: getSymbolColor(mySymbol),
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: "#000",
+                                    fontWeight: "800",
+                                    fontSize: 12,
+                                }}
+                            >
+                                {mySymbol}
+                            </Text>
+                        </View>
+                    </View>
                 </View>
             </View>
 
@@ -80,16 +108,39 @@ export function ScoreBar({ playerMap }: { playerMap: PlayerMap }) {
                 }}
             >
                 <View style={{ marginRight: 8 }}>
-                    <Text
-                        style={{
-                            color: Colors.textPrimary,
-                            fontWeight: "600",
-                        }}
-                    >
-                        {rival.username}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Text
+                            style={{
+                                color: Colors.textPrimary,
+                                fontWeight: "600",
+                                marginRight: 6,
+                            }}
+                        >
+                            {rival.username}
+                        </Text>
 
-
+                        {/* X / O badge */}
+                        <View
+                            style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: 11,
+                                backgroundColor: getSymbolColor(rivalSymbol),
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: "#000",
+                                    fontWeight: "800",
+                                    fontSize: 12,
+                                }}
+                            >
+                                {rivalSymbol}
+                            </Text>
+                        </View>
+                    </View>
                 </View>
 
                 <Image

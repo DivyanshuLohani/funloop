@@ -49,6 +49,10 @@ export class RoomManager {
     const room = await this.getRoom(roomId);
     if (!room) return;
     room.status = "started";
+    for (const playerId of room.players) {
+      await redis.set(`user:${playerId}:activeRoom`, roomId);
+    }
+
     await this.setRoom(roomId, room);
   }
 
@@ -74,5 +78,12 @@ export class RoomManager {
     }
 
     return room;
+  }
+  static async removePlayer(roomId: string, userId: string) {
+    const room = await this.getRoom(roomId);
+    if (!room) return;
+    room.players = room.players.filter((id) => id !== userId);
+    await redis.del(`user:${userId}:activeRoom`);
+    await this.setRoom(roomId, room);
   }
 }

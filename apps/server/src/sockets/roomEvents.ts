@@ -13,7 +13,7 @@ export function registerRoomEvents(io: Server, socket: Socket) {
 
     let room = await RoomManager.getRoom(roomId);
     if (!room) {
-      room = await RoomManager.createRoom(roomId, userId);
+      return socket.emit("ERROR", "Room does not exist");
     }
 
     socket.join(roomId);
@@ -34,6 +34,19 @@ export function registerRoomEvents(io: Server, socket: Socket) {
     const userId = socket.data.userId;
     if (!userId) return;
 
+    // if (isRejoin) {
+    //   logger.info(`User ${userId} reconnected to room ${roomId}`);
+
+    //   const room = await RoomManager.getRoom(roomId);
+    //   if (!room) return;
+    //   const state = JSON.parse((await redis.get(`game:${roomId}`)) ?? "{}");
+    //   if (!state) return;
+    //   io.to(roomId).emit("GAME_STATE_UPDATE", {
+    //     roomId,
+    //     state,
+    //   });
+    //   return;
+    // }
     await RoomManager.setDeviceReady(roomId, userId);
 
     const room = await RoomManager.getRoom(roomId);
@@ -68,6 +81,7 @@ export function registerRoomEvents(io: Server, socket: Socket) {
       roomId,
       userId,
     });
+    await RoomManager.removePlayer(roomId, userId);
 
     logger.info(`User ${userId} left room ${roomId}`);
   });

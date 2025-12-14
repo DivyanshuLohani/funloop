@@ -1,14 +1,47 @@
 import { ScrollView, Image, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { GlobalStyles, Radius, Spacing, Typography, Colors } from '@/theme/theme'
 import { LinearGradient } from 'expo-linear-gradient'
 import TopHeader from '@/components/TopHeader'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getSocket } from '@/services/socket'
 import { router } from 'expo-router';
+import { useMatch } from '@/context/MatchContext'
 
 
 const HomeScreen = () => {
+    // const { setMatch } = useMatch();
+    // const socket = getSocket();
+
+    // useEffect(() => {
+
+    //     if (!socket) return;
+
+    //     socket.emit("CHECK_GAME_STATUS");
+
+
+    //     socket.on("ALREADY_IN_GAME", ({ roomId, state, playersMap }) => {
+    //         console.log("Already in game", roomId, state, playersMap)
+    //         setMatch({
+    //             roomId,
+    //             playersMap,
+    //         });
+    //         setTimeout(() => {
+    //             // navigate directly
+    //             router.push({
+    //                 pathname: "/game",
+    //                 params: { roomId, isRejoin: 1 }
+    //             });
+
+    //         }, 1000);
+    //     });
+
+    //     return () => {
+    //         socket?.off("ALREADY_IN_GAME");
+    //     }
+
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [socket])
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background, padding: Spacing.lg }}>
