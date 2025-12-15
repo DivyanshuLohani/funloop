@@ -8,4 +8,10 @@ export function registerMatchEvents(io: Server, socket: Socket) {
 
     await MatchmakingQueue.joinQueue(gameType, 2, userId);
   });
+  socket.on("LEAVE_QUEUE", async ({ gameType }) => {
+    const userId = socket.data.userId;
+    if (!userId) return;
+
+    await MatchmakingQueue.leaveQueue(gameType, userId);
+  });
 }

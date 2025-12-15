@@ -43,6 +43,7 @@ export default function MatchmakingScreen() {
 
         return () => {
             socket.off("MATCH_FOUND");
+            socket.emit("LEAVE_QUEUE", { gameType: gameType as string });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);

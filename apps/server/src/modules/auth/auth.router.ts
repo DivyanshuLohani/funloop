@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { AuthService } from "./auth.service";
 import { logger } from "@funloop/logger";
+import { guestLimiter } from "../../lib/ratelimit";
 
 export const authRouter = Router();
 
 /**
  * Guest login
  */
-authRouter.post("/guest", async (req, res) => {
+authRouter.post("/guest", guestLimiter, async (req, res) => {
   logger.info("Registering new Device");
   try {
     const { deviceId } = req.body;

@@ -2,10 +2,9 @@ import React, { createContext, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { initSocket } from "../services/socket";
 import { User } from "../types";
-import { loginAsGuest } from "@/services/auth";
 
 
-export const AuthContext = createContext<{ user: User | null; token: string | null; loading: boolean } | null>(null);
+export const AuthContext = createContext<{ user: User | null; token: string | null; loading: boolean; updateAuth: (token: string, user: User) => void } | null>(null);
 
 export function AuthProvider({ children }: {
     children: React.ReactNode;
@@ -16,8 +15,19 @@ export function AuthProvider({ children }: {
 
     useEffect(() => {
         init();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+
+    function updateAuth(token: string, user: User) {
+        setToken(token);
+        setUser(user);
+
+        // Store in secure storage
+        SecureStore.setItemAsync("token", token);
+        SecureStore.setItemAsync("user", JSON.stringify(user));
+
+        initSocket(token);
+    }
 
     async function init() {
         const storedToken = await SecureStore.getItemAsync("token");
@@ -37,29 +47,27 @@ export function AuthProvider({ children }: {
             }
         }
 
-        // If no valid token, create guest
-        await guestLogin();
     }
 
-    async function guestLogin() {
-        const res = await loginAsGuest();
+    // async function guestLogin() {
+    //     const res = await loginAsGuest();
 
-        if (!res) {
-            throw new Error("Failed to create guest");
-        }
+    //     if (!res) {
+    //         throw new Error("Failed to create guest");
+    //     }
 
-        await SecureStore.setItemAsync("token", res.token);
+    //     await SecureStore.setItemAsync("token", res.token);
 
-        setToken(res.token);
-        setUser(res.user);
+    //     setToken(res.token);
+    //     setUser(res.user);
 
-        initSocket(res.token);
+    //     initSocket(res.token);
 
-        setLoading(false);
-    }
+    //     setLoading(false);
+    // }
 
     return (
-        <AuthContext.Provider value={{ user, token, loading }}>
+        <AuthContext.Provider value={{ user, token, loading, updateAuth }}>
             {children}
         </AuthContext.Provider>
     );

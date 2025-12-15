@@ -3,12 +3,13 @@ import { Redis } from "ioredis";
 import { UserSocketMap } from "../sockets/UserSocketMap";
 import { logger } from "@funloop/logger";
 import { UserService } from "../modules/users/user.service";
+import { SubscriberEvent } from "@funloop/types/index";
 
 export function registerMatchFoundSubscriber(io: Server, subClient: Redis) {
-  subClient.subscribe("match-found");
+  subClient.subscribe(SubscriberEvent.MATCH_FOUND);
 
   subClient.on("message", async (channel, msg) => {
-    if (channel === "match-found") {
+    if (channel === SubscriberEvent.MATCH_FOUND) {
       const { roomId, players } = JSON.parse(msg);
 
       for (const userId of players) {

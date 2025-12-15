@@ -3,6 +3,7 @@ import { redis } from "../redis";
 import { TicTacToeEngine } from "@funloop/game-core";
 import { RoomManager } from "../rooms/RoomManager";
 import logger from "packages/logger/dist";
+import { SubscriberEvent } from "@funloop/types/";
 
 const engine = new TicTacToeEngine();
 
@@ -43,7 +44,10 @@ export function registerGameEvents(io: Server, socket: Socket) {
     if (isGameOver) {
       io.to(roomId).emit("GAME_OVER", newState);
       // Publish to redis
-      await redis.publish("game-ended", JSON.stringify({ roomId }));
+      await redis.publish(
+        SubscriberEvent.GAME_ENDED,
+        JSON.stringify({ roomId })
+      );
     }
   });
   socket.on("REQUEST_REMATCH", async ({ roomId }) => {

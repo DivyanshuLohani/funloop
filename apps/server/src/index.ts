@@ -13,6 +13,9 @@ import { registerMatchEvents } from "./sockets/matchEvents";
 import { logger } from "@funloop/logger";
 import { registerMatchFoundSubscriber } from "./subscribers/matchFound.subscriber";
 import { handleReconnection } from "./sockets/reconnection";
+import { registerGameEndedSubscriber } from "./subscribers/gameEnded.subscriber";
+import { registerUserDisconnectSubscriber } from "./subscribers/userDisconnect.subscriber";
+import { SubscriberEvent } from "@funloop/types/index";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -26,6 +29,7 @@ app.use("/health", healthRouter);
 app.get("/", (req, res) => {
   res.send("Funloop Server Running");
 });
+app.use("/avatars", express.static("public/avatars"));
 
 // END OF EXPRESS CONFIGURATION //
 
@@ -58,6 +62,7 @@ io.on("connection", async (socket) => {
 
     socket.on("disconnect", async () => {
       await UserSocketMap.unbind(decoded.userId);
+      pubClient.publish(SubscriberEvent.USER_DISCONNECT, decoded.userId);
       logger.info(`Disconnected: ${socket.id}`);
     });
   } catch {
@@ -67,6 +72,8 @@ io.on("connection", async (socket) => {
 });
 
 registerMatchFoundSubscriber(io, subClient);
+registerGameEndedSubscriber(subClient);
+registerUserDisconnectSubscriber(io, subClient);
 
 httpServer.listen(3000, "0.0.0.0", () => {
   logger.info("Funloop server running on port 3000");

@@ -1,6 +1,8 @@
+import { GameType } from "@funloop/types/index";
+
 export interface RedisGameRoom {
   id: string;
-  gameType: string;
+  gameType: GameType;
   size: number;
   players: string[];
   ready_players: string[];

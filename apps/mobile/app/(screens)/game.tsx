@@ -25,6 +25,7 @@ export default function GameScreen() {
     const [status, setStatus] = useState("Waiting for players...");
     const [showWinner, setShowWinner] = useState(false);
     const [waitingForRematch, setWaitingForRematch] = useState(false);
+    const [hasOtherPlayerLeft, setHasOtherPlayerLeft] = useState(false);
 
     useEffect(() => {
         if (!socket) return;
@@ -64,6 +65,8 @@ export default function GameScreen() {
 
         socket.on("PLAYER_LEFT", ({ userId }) => {
             setStatus(`Player ${userId} left`);
+            setHasOtherPlayerLeft(true);
+
         });
 
         return () => {
@@ -127,13 +130,15 @@ export default function GameScreen() {
             <WinnerModal
                 visible={showWinner}
                 winnerId={gameState?.winner ?? null}
-                isYou={gameState?.winner === auth?.user?.id}
+                currentUserId={auth?.user?.id ?? ""}
+                players={playersMap ? Object.values(playersMap) : []}
                 onClose={() => {
                     setShowWinner(false);
                     router.replace({
                         pathname: "/(drawer)/home"
                     });
                 }}
+                hasOtherPlayerLeft={hasOtherPlayerLeft}
                 onRematch={() => {
                     setShowWinner(false);
                     socket?.emit("REQUEST_REMATCH", { roomId });

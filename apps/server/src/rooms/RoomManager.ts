@@ -1,3 +1,4 @@
+import { GameType } from "@funloop/types/index";
 import { redis } from "../redis";
 import { RedisGameRoom } from "../types/RedisGameRoom";
 
@@ -11,7 +12,7 @@ const generateRoomCode = () => {
 };
 
 export class RoomManager {
-  static async createRoom(gameType: string, players: string[]) {
+  static async createRoom(gameType: GameType, players: string[]) {
     const roomId = `room:${generateRoomCode()}`;
 
     const roomData: RedisGameRoom = {

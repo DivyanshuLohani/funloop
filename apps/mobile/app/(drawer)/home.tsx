@@ -1,47 +1,20 @@
-import { ScrollView, Image, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
+import { ScrollView, Image, Text, TouchableOpacity, View, Pressable } from 'react-native'
+import React from 'react'
 import { GlobalStyles, Radius, Spacing, Typography, Colors } from '@/theme/theme'
 import { LinearGradient } from 'expo-linear-gradient'
 import TopHeader from '@/components/TopHeader'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getSocket } from '@/services/socket'
-import { router } from 'expo-router';
-import { useMatch } from '@/context/MatchContext'
+import { router } from 'expo-router'
+import ProfilePreviewDemo from '@/components/profile/demo-profile'
+import { GameType } from '@funloop/types'
+import { clearAppSession } from '@/utils/devReset'
+import { useAuth } from '@/hooks/useAuth'
+import { getFullAssetUrl } from '@/utils/constants'
 
 
 const HomeScreen = () => {
-    // const { setMatch } = useMatch();
-    // const socket = getSocket();
-
-    // useEffect(() => {
-
-    //     if (!socket) return;
-
-    //     socket.emit("CHECK_GAME_STATUS");
-
-
-    //     socket.on("ALREADY_IN_GAME", ({ roomId, state, playersMap }) => {
-    //         console.log("Already in game", roomId, state, playersMap)
-    //         setMatch({
-    //             roomId,
-    //             playersMap,
-    //         });
-    //         setTimeout(() => {
-    //             // navigate directly
-    //             router.push({
-    //                 pathname: "/game",
-    //                 params: { roomId, isRejoin: 1 }
-    //             });
-
-    //         }, 1000);
-    //     });
-
-    //     return () => {
-    //         socket?.off("ALREADY_IN_GAME");
-    //     }
-
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [socket])
+    const { user } = useAuth();
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background, padding: Spacing.lg }}>
@@ -50,7 +23,7 @@ const HomeScreen = () => {
                 {/* Profile Card */}
                 <View style={GlobalStyles.profileCard}>
                     <Image
-                        source={{ uri: "https://i.pravatar.cc/150" }}
+                        source={{ uri: getFullAssetUrl(user?.avatar ?? "https://i.pravatar.cc/150") }}
                         style={{
                             width: 50,
                             height: 50,
@@ -59,8 +32,8 @@ const HomeScreen = () => {
                         }}
                     />
                     <View>
-                        <Text style={Typography.subtitle}>PlayerOne</Text>
-                        <Text style={{ color: Colors.gold, marginTop: 4 }}>💰 1,250 Coins</Text>
+                        <Text style={Typography.subtitle}>{user?.username}</Text>
+                        <Text style={{ color: Colors.gold, marginTop: 4 }}>💰 {user?.coins} Coins</Text>
                     </View>
                 </View>
 
@@ -146,11 +119,11 @@ const HomeScreen = () => {
                     style={GlobalStyles.primaryButton}
                     onPress={() => {
                         const socket = getSocket();
-                        socket?.emit("QUEUE_JOIN", { gameType: "tictactoe" });
+                        socket?.emit("QUEUE_JOIN", { gameType: GameType.TICTACTOE });
                         router.push({
                             pathname: "/matchmaking",
                             params: {
-                                gameType: "tictactoe",
+                                gameType: GameType.TICTACTOE,
                                 players: 2,
                                 mode: "quick"
                             }
@@ -168,6 +141,26 @@ const HomeScreen = () => {
                         <Text style={{ ...Typography.body, color: Colors.textPrimary }}>Create Room</Text>
                     </TouchableOpacity>
                 </View>
+                <ProfilePreviewDemo />
+                {__DEV__ && <Pressable
+                    onPress={async () => {
+                        await clearAppSession();
+                        router.replace("/consent");
+                    }}
+                    style={{
+                        position: "absolute",
+                        bottom: 40,
+                        right: 20,
+                        backgroundColor: "#ff4444",
+                        paddingHorizontal: 14,
+                        paddingVertical: 10,
+                        borderRadius: 10,
+                    }}
+                >
+                    <Text style={{ color: "#fff", fontWeight: "600" }}>
+                        Reset App
+                    </Text>
+                </Pressable>}
             </ScrollView>
         </SafeAreaView>
     )

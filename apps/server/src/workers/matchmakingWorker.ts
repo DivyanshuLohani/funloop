@@ -2,12 +2,13 @@ import { MatchmakingQueue } from "../matchmaking/Queue";
 import { RoomManager } from "../rooms/RoomManager";
 import { redis } from "../redis";
 import { logger } from "@funloop/logger";
+import { GameType, SubscriberEvent } from "@funloop/types/index";
 
 async function matchmakingLoop() {
   logger.info("Matchmaking worker running...");
 
   while (true) {
-    const gameType = "tictactoe";
+    const gameType = GameType.TICTACTOE;
     const size = 2; // 2-player ludo for now
 
     const length = await MatchmakingQueue.queueLength(gameType, size);
@@ -25,7 +26,10 @@ async function matchmakingLoop() {
       const roomId = await RoomManager.createRoom(gameType, players ?? []);
 
       // publish to websocket servers
-      await redis.publish("match-found", JSON.stringify({ roomId, players }));
+      await redis.publish(
+        SubscriberEvent.MATCH_FOUND,
+        JSON.stringify({ roomId, players })
+      );
     }
 
     await wait(200); // 200 ms tick

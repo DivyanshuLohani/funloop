@@ -2,6 +2,13 @@ import { prisma } from "@funloop/database";
 import { PlayerSnapshot } from "@funloop/types/index";
 import bcrypt from "bcryptjs";
 
+function getDefaultAvatar(userId: string) {
+  const index =
+    userId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 25;
+
+  return `/avatars/avatar-${index + 1}.png`;
+}
+
 export const UserService = {
   findByDeviceId: (deviceId: string) => {
     return prisma.user.findUnique({ where: { deviceId } });
@@ -14,6 +21,14 @@ export const UserService = {
         username: `Guest${random}`,
         deviceId,
         isGuest: true,
+        avatar: getDefaultAvatar(`Guest${random}`),
+      },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        isGuest: true,
+        deviceId: true,
       },
     });
   },
@@ -30,6 +45,7 @@ export const UserService = {
         passwordHash: hash,
         isGuest: false,
         username: email.split("@")[0],
+        avatar: getDefaultAvatar(email.split("@")[0]),
       },
     });
   },
@@ -53,7 +69,15 @@ export const UserService = {
   getUserSnapshot: async (userId: string): Promise<PlayerSnapshot | null> => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, avatar: true, isGuest: true },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        isGuest: true,
+        gameResults: {
+          select: { winnerId: true },
+        },
+      },
     });
     if (!user) return null;
     return {
@@ -61,8 +85,9 @@ export const UserService = {
       username: user.username,
       avatar: user.avatar,
       isGuest: user.isGuest,
-      games: 0,
-      wins: 0,
+      games: user.gameResults.length,
+      wins: user.gameResults.filter((result) => result.winnerId === user.id)
+        .length,
     };
   },
 
@@ -71,7 +96,15 @@ export const UserService = {
   ): Promise<Record<string, PlayerSnapshot>> => {
     const users = await prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, username: true, avatar: true, isGuest: true },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        isGuest: true,
+        gameResults: {
+          select: { winnerId: true },
+        },
+      },
     });
     // Create a map like this id: data
     const playerMap = users.reduce((acc, user) => {
@@ -80,8 +113,9 @@ export const UserService = {
         username: user.username,
         avatar: user.avatar,
         isGuest: user.isGuest,
-        games: 0,
-        wins: 0,
+        games: user.gameResults.length,
+        wins: user.gameResults.filter((result) => result.winnerId === user.id)
+          .length,
       };
       return acc;
     }, {} as Record<string, PlayerSnapshot>);

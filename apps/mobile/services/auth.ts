@@ -3,6 +3,7 @@ import { api } from "./api";
 import { User } from "@/types";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import { ToastAndroid } from "react-native";
 
 async function getOrCreateDeviceId() {
   let id = await SecureStore.getItemAsync("deviceId");
@@ -30,6 +31,7 @@ export async function loginAsGuest(): Promise<{
     const deviceId = await getOrCreateDeviceId();
     // Call your backend API for guest login
     const response = await api.post("/auth/guest", { deviceId });
+
     if (response.data) {
       // Store the token in secure storage
       await SecureStore.setItemAsync("token", response.data.token);
@@ -41,8 +43,8 @@ export async function loginAsGuest(): Promise<{
     }
 
     return null;
-  } catch (error) {
-    console.error("Guest login failed:", error);
+  } catch {
+    ToastAndroid.show("Guest limit reached", ToastAndroid.SHORT);
     return null;
   }
 }

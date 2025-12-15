@@ -4,7 +4,8 @@ export interface User {
   isGuest: boolean;
   deviceId: string;
   username: string;
-  avatarUrl: string;
+  avatar: string;
+  coins: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -2,18 +2,23 @@ import { Redis } from "ioredis";
 import { logger } from "@funloop/logger";
 import { prisma } from "@funloop/database";
 import { RoomManager } from "../rooms/RoomManager";
+import { UserService } from "../modules/users/user.service";
+import { SubscriberEvent } from "@funloop/types/index";
 
 export function registerGameEndedSubscriber(sub: Redis) {
-  sub.subscribe("game-ended");
+  sub.subscribe(SubscriberEvent.GAME_ENDED);
 
   sub.on("message", async (channel, msg) => {
-    if (channel !== "game-ended") return;
+    if (channel !== SubscriberEvent.GAME_ENDED) return;
 
     const { roomId } = JSON.parse(msg);
     const room = await RoomManager.getRoom(roomId);
     if (!room) return;
 
     const { gameType, players } = room;
+
+    const playerMap = await UserService.getUserSnapshotMany(players);
+
     const winnerId = room.game_state?.winner; // This will be present because the game is over
 
     try {
@@ -25,7 +30,7 @@ export function registerGameEndedSubscriber(sub: Redis) {
           winnerId,
           startedAt: new Date(),
           endedAt: new Date(),
-          players,
+          players: playerMap,
         },
       });
 
