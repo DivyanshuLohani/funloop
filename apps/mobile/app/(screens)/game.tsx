@@ -70,6 +70,10 @@ export default function GameScreen() {
             setStatus(`Player ${userId} left`);
             setHasOtherPlayerLeft(true);
 
+            if (waitingForRematch) {
+                setShowWinner(true)
+            }
+
         });
 
         return () => {
@@ -111,6 +115,11 @@ export default function GameScreen() {
             {waitingForRematch && <TurnIndicator
                 text={
                     "Waiting for rival to accept rematch"
+                }
+            />}
+            {hasOtherPlayerLeft && <TurnIndicator
+                text={
+                    "Rival left"
                 }
             />}
             {gameState ? (

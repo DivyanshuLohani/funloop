@@ -1,9 +1,9 @@
+import { TicTacToeEngine, TicTacToeState } from "@funloop/game-core/index";
 import { redis } from "../redis";
-import { LudoEngine, LudoState } from "@funloop/game-core/ludo/LudoEngine";
 import { logger } from "@funloop/logger";
 import { SubscriberEvent } from "@funloop/types/index";
 
-const engine = new LudoEngine();
+const engine = new TicTacToeEngine();
 
 async function timerLoop() {
   logger.info("Turn timer worker running...");
@@ -15,16 +15,12 @@ async function timerLoop() {
       const raw = await redis.get(key);
       if (!raw) continue;
 
-      const game = JSON.parse(raw) as {
-        state: LudoState;
-        turn: string;
-        turnDeadline: number;
-      };
+      const game = JSON.parse(raw);
 
       if (Date.now() > game.turnDeadline) {
         logger.info(`Auto-playing for room ${key}`);
 
-        const newState = engine.autoPlay(game.state, game.turn);
+        const newState = engine.autoPlay(game, game.turn);
 
         game.state = newState;
         game.turnDeadline = Date.now() + 10000;
