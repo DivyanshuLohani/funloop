@@ -16,7 +16,6 @@ export function registerGameEvents(io: Server, socket: Socket) {
     if (!raw) return;
 
     let state = JSON.parse(raw);
-
     // TURN VALIDATION
     if (state.turn !== userId) {
       return socket.emit("ERROR", "Not your turn");
@@ -37,8 +36,13 @@ export function registerGameEvents(io: Server, socket: Socket) {
     // Save updated game state
     await redis.set(`game:${roomId}`, JSON.stringify(newState));
 
-    // Broadcast to all players in the room
-    io.to(roomId).emit("GAME_STATE_UPDATE", newState);
+    await redis.publish(
+      SubscriberEvent.GAME_UPDATE,
+      JSON.stringify({
+        roomId,
+        state: newState,
+      })
+    );
 
     // If game is over, emit game over event
     if (isGameOver) {

@@ -1,6 +1,7 @@
 import { redis } from "../redis";
 import { LudoEngine, LudoState } from "@funloop/game-core/ludo/LudoEngine";
 import { logger } from "@funloop/logger";
+import { SubscriberEvent } from "@funloop/types/index";
 
 const engine = new LudoEngine();
 
@@ -31,7 +32,7 @@ async function timerLoop() {
         await redis.set(key, JSON.stringify(game));
 
         await redis.publish(
-          "game-update",
+          SubscriberEvent.GAME_UPDATE,
           JSON.stringify({
             roomId: key.replace("game:", ""),
             state: engine.getPlayerView(newState, game.turn),

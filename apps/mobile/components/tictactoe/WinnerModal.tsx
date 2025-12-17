@@ -1,6 +1,7 @@
 import { Modal, View, Text, TouchableOpacity, Image } from "react-native";
 import { Colors, Radius, Spacing } from "@/theme/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { getFullAssetUrl } from "@/utils/constants";
 
 type Player = {
     id: string;
@@ -14,6 +15,7 @@ interface Props {
     winnerId: string | null; // userId | "draw"
     currentUserId: string;
     hasOtherPlayerLeft: boolean;
+    otherPlayerWantsRematch: boolean;
     onClose: () => void;
     onRematch: () => void;
 }
@@ -24,16 +26,29 @@ export function WinnerModal({
     winnerId,
     currentUserId,
     hasOtherPlayerLeft,
+    otherPlayerWantsRematch,
     onClose,
     onRematch,
 }: Props) {
     if (!visible) return null;
 
     const isDraw = winnerId === "draw";
-    const winner = players.find(p => p.id === winnerId);
-    const isYouWinner = winnerId === currentUserId;
 
-    const otherPlayers = players.filter(p => p.id !== winnerId);
+    const winner = !isDraw
+        ? players.find(p => p.id === winnerId)
+        : null;
+
+    const losers = !isDraw
+        ? players.filter(p => p.id !== winnerId)
+        : [];
+
+    const isYouWinner = winnerId === currentUserId;
+    const statusText =
+        !hasOtherPlayerLeft && otherPlayerWantsRematch
+            ? "Opponent Wants Rematch"
+            : hasOtherPlayerLeft
+                ? "Opponent Left"
+                : "";
 
     return (
         <Modal transparent animationType="fade">
@@ -61,113 +76,179 @@ export function WinnerModal({
                             paddingHorizontal: Spacing.lg,
                             paddingVertical: Spacing.sm,
                             borderRadius: Radius.full,
-                            backgroundColor: "rgba(50,255,62,0.15)",
+                            backgroundColor: isDraw ? "rgba(255,255,255,0.15)" : isYouWinner ? "rgba(50,255,62,0.15)" : "rgba(255,255,255,0.15)",
                             marginBottom: Spacing.lg,
                             flexDirection: "row",
                             alignItems: "center",
                         }}
                     >
-                        <Text style={{ color: "#32FF3E", fontWeight: "700", letterSpacing: 1 }}>
-                            🏆 VICTORY
-                        </Text>
+                        {
+                            isDraw ? (
+                                <Text style={{ color: "#32FF3E", fontWeight: "700", letterSpacing: 1 }}>
+                                    🏆 VICTORY
+                                </Text>
+                            ) : isYouWinner ? (
+                                <Text style={{ color: "#32FF3E", fontWeight: "700", letterSpacing: 1 }}>
+                                    🏆 VICTORY
+                                </Text>
+                            ) : (
+                                <Text style={{ color: "#FF3232", fontWeight: "700", letterSpacing: 1 }}>
+                                    🏆 DEFEAT
+                                </Text>
+                            )
+                        }
                     </View>
 
-                    {/* TITLE */}
-                    <Text
-                        style={{
-                            fontSize: 40,
-                            fontWeight: "900",
-                            color: Colors.textPrimary,
-                            marginBottom: Spacing.xl,
-                            textAlign: "center",
-                        }}
-                    >
-                        {isDraw ? "DRAW" : isYouWinner ? "YOU WIN!" : "YOU LOSE"}
-                    </Text>
 
-                    {/* PLAYERS ROW */}
+                    {/* PLAYERS */}
                     <View
                         style={{
-                            flexDirection: "row",
                             alignItems: "center",
+                            justifyContent: "center",
                             marginBottom: Spacing.xl,
                         }}
                     >
-                        {/* LEFT PLAYER */}
-                        {otherPlayers[0] && (
-                            <View style={{ opacity: 0.5 }}>
-                                <Image
-                                    source={{ uri: otherPlayers[0].avatar ?? "https://i.pravatar.cc/100" }}
-                                    style={{
-                                        width: 56,
-                                        height: 56,
-                                        borderRadius: 28,
-                                    }}
-                                />
+                        {/* DRAW MODE */}
+                        {isDraw && (
+                            <View style={{ flexDirection: "row", position: "relative" }}>
+
+
+                                {players.map((player) => (
+                                    <View
+                                        key={player.id}
+                                        style={{ marginHorizontal: Spacing.lg, alignItems: "center" }}
+                                    >
+                                        <Image
+                                            source={{
+                                                uri: getFullAssetUrl(
+                                                    player.avatar ?? "https://i.pravatar.cc/100"
+                                                ),
+                                            }}
+                                            style={{
+                                                width: 72,
+                                                height: 72,
+                                                borderRadius: 36,
+                                            }}
+                                        />
+
+                                        <Text
+                                            style={{
+                                                marginTop: 6,
+                                                fontWeight: "700",
+                                                color: Colors.textPrimary,
+                                            }}
+                                        >
+                                            {player.id === currentUserId ? "YOU" : player.username}
+                                        </Text>
+                                    </View>
+                                ))}
                             </View>
                         )}
 
-                        {/* WINNER */}
-                        <View
-                            style={{
-                                marginHorizontal: Spacing.lg,
-                                alignItems: "center",
-                            }}
-                        >
-                            {/* CROWN */}
-                            {!isDraw && (
-                                <Text style={{ fontSize: 28, marginBottom: 4 }}>👑</Text>
-                            )}
+                        {/* WIN / LOSE MODE */}
+                        {!isDraw && winner && (
+                            <>
+                                {/* WINNER CENTER */}
+                                <View style={{ alignItems: "center", marginBottom: Spacing.lg }}>
+                                    <Text style={{ fontSize: 28, marginBottom: 4 }}>👑</Text>
 
+                                    <View
+                                        style={{
+                                            width: 88,
+                                            height: 88,
+                                            borderRadius: 44,
+                                            backgroundColor: Colors.accentGreen,
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Image
+                                            source={{
+                                                uri: getFullAssetUrl(
+                                                    winner.avatar ?? "https://i.pravatar.cc/100"
+                                                ),
+                                            }}
+                                            style={{
+                                                width: 72,
+                                                height: 72,
+                                                borderRadius: 36,
+                                            }}
+                                        />
+                                    </View>
+
+                                    <View
+                                        style={{
+                                            marginTop: 6,
+                                            paddingHorizontal: 12,
+                                            paddingVertical: 4,
+                                            borderRadius: Radius.full,
+                                            backgroundColor: Colors.accentGreen,
+                                        }}
+                                    >
+                                        <Text style={{ fontWeight: "700", color: "#003300" }}>
+                                            {winner.id === currentUserId ? "YOU" : winner.username}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* LOSERS ROW BELOW */}
+                                {losers.length > 0 && (
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            justifyContent: "center",
+                                            gap: Spacing.lg,
+                                        }}
+                                    >
+                                        {losers.map((loser) => (
+                                            <View key={loser.id} style={{ opacity: 0.5, alignItems: "center" }}>
+                                                <Image
+                                                    source={{
+                                                        uri: getFullAssetUrl(
+                                                            loser.avatar ?? "https://i.pravatar.cc/100"
+                                                        ),
+                                                    }}
+                                                    style={{
+                                                        width: 36,
+                                                        height: 36,
+                                                        borderRadius: 28,
+                                                    }}
+                                                />
+                                                <Text
+                                                    style={{
+                                                        marginTop: 4,
+                                                        fontSize: 12,
+                                                        color: Colors.textSecondary,
+                                                        fontWeight: "600",
+                                                    }}
+                                                >
+                                                    {loser.id === currentUserId ? "YOU" : loser.username}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+                            </>
+                        )}
+
+                        {statusText ? (
                             <View
                                 style={{
-                                    width: 88,
-                                    height: 88,
-                                    borderRadius: 44,
-                                    backgroundColor: Colors.accentGreen,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Image
-                                    source={{ uri: winner?.avatar ?? "https://i.pravatar.cc/100" }}
-                                    style={{
-                                        width: 72,
-                                        height: 72,
-                                        borderRadius: 36,
-                                    }}
-                                />
-                            </View>
-
-                            <View
-                                style={{
-                                    marginTop: 6,
-                                    paddingHorizontal: 12,
-                                    paddingVertical: 4,
+                                    backgroundColor: "rgba(255,255,255,0.15)",
+                                    padding: Spacing.sm,
                                     borderRadius: Radius.full,
-                                    backgroundColor: Colors.accentGreen,
+                                    marginTop: Spacing.sm,
                                 }}
                             >
-                                <Text style={{ fontWeight: "700", color: "#003300" }}>
-                                    {winner?.id === currentUserId ? "YOU" : winner?.username}
+                                <Text style={{ color: Colors.textPrimary, fontWeight: "700" }}>
+                                    {statusText}
                                 </Text>
                             </View>
-                        </View>
-
-                        {/* RIGHT PLAYER */}
-                        {otherPlayers[1] && (
-                            <View style={{ opacity: 0.5 }}>
-                                <Image
-                                    source={{ uri: otherPlayers[1].avatar ?? "https://i.pravatar.cc/100" }}
-                                    style={{
-                                        width: 56,
-                                        height: 56,
-                                        borderRadius: 28,
-                                    }}
-                                />
-                            </View>
-                        )}
+                        ) : null}
                     </View>
+
+                    {/* Other player wants rematch show a animated popup */}
+
 
                     {/* PLAY AGAIN */}
                     <TouchableOpacity

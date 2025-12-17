@@ -25,6 +25,7 @@ export default function GameScreen() {
     const [status, setStatus] = useState("Waiting for players...");
     const [showWinner, setShowWinner] = useState(false);
     const [waitingForRematch, setWaitingForRematch] = useState(false);
+    const [otherPlayerWantsRematch, setOtherPlayerWantsRematch] = useState(false);
     const [hasOtherPlayerLeft, setHasOtherPlayerLeft] = useState(false);
 
     useEffect(() => {
@@ -38,12 +39,14 @@ export default function GameScreen() {
 
         socket.on("REMATCH_STATUS", ({ accepted, total }) => {
             setWaitingForRematch(true);
+            setOtherPlayerWantsRematch(accepted !== total);
         });
 
         socket.on("REMATCH_START", ({ state }) => {
             setGameState(state);
             setShowWinner(false);
             setWaitingForRematch(false);
+            setOtherPlayerWantsRematch(false);
 
         });
 
@@ -139,6 +142,7 @@ export default function GameScreen() {
                     });
                 }}
                 hasOtherPlayerLeft={hasOtherPlayerLeft}
+                otherPlayerWantsRematch={otherPlayerWantsRematch}
                 onRematch={() => {
                     setShowWinner(false);
                     socket?.emit("REQUEST_REMATCH", { roomId });

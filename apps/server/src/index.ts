@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { redis } from "./redis";
 import { UserSocketMap } from "./sockets/UserSocketMap";
+import { UserStatusMap } from "./sockets/UserStatusMap";
 import { registerRoomEvents } from "./sockets/roomEvents";
 import { registerGameEvents } from "./sockets/gameEvents";
 import { authRouter } from "./modules/auth/auth.router";
@@ -16,6 +17,7 @@ import { handleReconnection } from "./sockets/reconnection";
 import { registerGameEndedSubscriber } from "./subscribers/gameEnded.subscriber";
 import { registerUserDisconnectSubscriber } from "./subscribers/userDisconnect.subscriber";
 import { SubscriberEvent } from "@funloop/types/index";
+import { registerGameUpdateSubscriber } from "./subscribers/gameUpdate.subscriber";
 
 const pubClient = redis;
 const subClient = redis.duplicate();
@@ -50,6 +52,7 @@ io.on("connection", async (socket) => {
     socket.data.isGuest = decoded.isGuest;
 
     await UserSocketMap.bind(decoded.userId, socket.id);
+    await UserStatusMap.bind(decoded.userId);
 
     logger.info(`Connected: ${socket.id}`);
 
@@ -62,6 +65,7 @@ io.on("connection", async (socket) => {
 
     socket.on("disconnect", async () => {
       await UserSocketMap.unbind(decoded.userId);
+      await UserStatusMap.unbind(decoded.userId);
       pubClient.publish(SubscriberEvent.USER_DISCONNECT, decoded.userId);
       logger.info(`Disconnected: ${socket.id}`);
     });
@@ -74,6 +78,7 @@ io.on("connection", async (socket) => {
 registerMatchFoundSubscriber(io, subClient);
 registerGameEndedSubscriber(subClient);
 registerUserDisconnectSubscriber(io, subClient);
+registerGameUpdateSubscriber(io, subClient);
 
 httpServer.listen(3000, "0.0.0.0", () => {
   logger.info("Funloop server running on port 3000");

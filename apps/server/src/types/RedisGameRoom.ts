@@ -1,7 +1,21 @@
 import { GameType } from "@funloop/types/index";
 
+export enum RoomVisibility {
+  PUBLIC = "public",
+  PRIVATE = "private",
+}
+
+export enum RoomType {
+  GAME = "game",
+  PARTY = "party",
+  DM = "dm",
+}
+
 export interface RedisGameRoom {
   id: string;
+  type: RoomType;
+  visibility: RoomVisibility;
+  host: string;
   gameType: GameType;
   size: number;
   players: string[];

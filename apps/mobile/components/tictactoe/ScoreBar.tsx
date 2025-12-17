@@ -2,6 +2,7 @@ import { View, Text, Image } from "react-native";
 import { Colors, Radius, Spacing } from "@/theme/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { PlayerSnapshot } from "@funloop/types";
+import { getFullAssetUrl } from "@/utils/constants";
 
 
 export type PlayerMap = Record<string, PlayerSnapshot>;
@@ -50,7 +51,7 @@ export function ScoreBar({ playerMap }: { playerMap: PlayerMap }) {
             >
                 <Image
                     source={{
-                        uri: me.avatar ?? "https://i.pravatar.cc/100",
+                        uri: getFullAssetUrl(me.avatar ?? "https://i.pravatar.cc/100"),
                     }}
                     style={{
                         width: 36,
@@ -145,7 +146,7 @@ export function ScoreBar({ playerMap }: { playerMap: PlayerMap }) {
 
                 <Image
                     source={{
-                        uri: rival.avatar ?? "https://i.pravatar.cc/100?img=5",
+                        uri: getFullAssetUrl(rival.avatar ?? "https://i.pravatar.cc/100?img=5"),
                     }}
                     style={{
                         width: 36,
