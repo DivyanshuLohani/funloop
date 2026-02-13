@@ -6,8 +6,11 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, Radius, Typography } from "@/theme/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/hooks/useAuth";
+import { getFullAssetUrl } from "@/utils/constants";
 
 export default function CustomDrawer(props: any) {
+    const { user } = useAuth();
     return (
         <DrawerContentScrollView
             {...props}
@@ -20,13 +23,13 @@ export default function CustomDrawer(props: any) {
                 <View style={styles.profileSection}>
                     <View style={styles.avatarWrapper}>
                         <Image
-                            source={{ uri: "https://i.pravatar.cc/150" }}
+                            source={{ uri: getFullAssetUrl(user?.avatar ?? "") }}
                             style={styles.avatar}
                         />
                     </View>
                     <View>
-                        <Text style={styles.profileName}>PlayerOne</Text>
-                        <Text style={styles.profileUsername}>@playerone</Text>
+                        <Text style={styles.profileName}>{user?.displayName}</Text>
+                        <Text style={styles.profileUsername}>@{user?.username}</Text>
                     </View>
                 </View>
 
@@ -76,7 +79,7 @@ export default function CustomDrawer(props: any) {
             </View>
 
             {/* Invite Friends Card */}
-            <LinearGradient
+            {/* <LinearGradient
                 colors={["#6A5BFF", "#2D9CFF"]}
                 style={styles.inviteCard}
             >
@@ -93,7 +96,7 @@ export default function CustomDrawer(props: any) {
                 <TouchableOpacity style={styles.inviteButton}>
                     <Text style={styles.inviteButtonText}>Invite Now</Text>
                 </TouchableOpacity>
-            </LinearGradient>
+            </LinearGradient> */}
         </DrawerContentScrollView>
     );
 }
