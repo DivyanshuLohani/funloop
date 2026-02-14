@@ -5,8 +5,15 @@
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "dev": "concurrently -n SERVER,MOBILE,WORKER -c cyan,magenta,yellow \"bun run dev:server\" \"bun run dev:mobile\" \"bun run dev:worker\"",
+    "dev:server": "bun --cwd=apps/server run dev",
+    "dev:mobile": "bun --cwd=apps/mobile run start",
+    "dev:worker": "bun --watch apps/server/src/workers/matchmakingWorker.ts"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
