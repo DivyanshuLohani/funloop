@@ -63,7 +63,15 @@ export default function MatchmakingScreen() {
                 {/* Players Loading UI */}
                 <MMPlayerSlots
                     total={totalPlayers}
-                    found={playersFound}
+                    players={
+                        [
+                            {
+                                id: "1",
+                                name: "Player 1",
+
+                            }
+                        ]
+                    }
                 />
 
                 {/* Progress Bar */}

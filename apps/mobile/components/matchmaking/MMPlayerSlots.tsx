@@ -1,53 +1,130 @@
-import { View, Text } from "react-native";
-import { Colors, Spacing, Radius } from "../../theme/theme";
+import React, { useState } from "react";
+import {
+    View,
+    Text,
+    Pressable,
+    Modal,
+    StyleSheet,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors, Spacing, Radius } from "../../theme/theme";
+import InviteFriendsDialog from "../friends/InviteFriendsDialog";
 
+type Player = {
+    id: string;
+    name: string;
+};
 
-export default function MMPlayerSlots({ total = 4, found = 2 }) {
+type Props = {
+    total?: number;
+    players: Player[];
+    onOpenInvite?: () => void; // optional external handler later
+};
+
+export default function MMPlayerSlots({ total = 4, players, onOpenInvite }: Props) {
+    const [dialogVisible, setDialogVisible] = useState(false);
+
     const slots = Array.from({ length: total });
+
+    function handleOpenEmptySlot() {
+        if (onOpenInvite) {
+            onOpenInvite(); // future control from parent
+        } else {
+            setDialogVisible(true); // temporary internal dialog
+        }
+    }
 
     return (
         <View style={{ alignItems: "center", marginBottom: Spacing.md }}>
-            <Text style={{ color: Colors.textPrimary, fontSize: 20, fontWeight: "700", marginBottom: 20 }}>
-                Finding players…
-            </Text>
+            <Text style={styles.title}>Finding players…</Text>
 
-            <View style={{ flexDirection: "row", gap: 16, marginBottom: 20 }}>
+            <View style={styles.row}>
                 {slots.map((_, index) => {
-                    const isFilled = index < found;
+                    const player = players[index];
+                    const isFilled = !!player;
+
+                    const SlotWrapper = isFilled ? View : Pressable;
 
                     return (
-                        <View
+                        <SlotWrapper
                             key={index}
-                            style={{
-                                width: 60,
-                                height: 60,
-                                borderRadius: Radius.full,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                backgroundColor: isFilled
-                                    ? index === 0
-                                        ? Colors.accentBlue
-                                        : Colors.accentGreen
-                                    : "transparent",
-                                borderWidth: isFilled ? 0 : 2,
-                                borderColor: "#8B8FA8",
-                                opacity: isFilled ? 1 : 0.4,
-                            }}
+                            onPress={!isFilled ? handleOpenEmptySlot : undefined}
+                            style={[
+                                styles.slot,
+                                {
+                                    backgroundColor: isFilled
+                                        ? index === 0
+                                            ? Colors.accentBlue
+                                            : Colors.accentGreen
+                                        : "transparent",
+                                    borderWidth: isFilled ? 0 : 2,
+                                    opacity: isFilled ? 1 : 0.4,
+                                },
+                            ]}
                         >
-                            {isFilled ? (
-                                <Ionicons name="person" size={28} color="white" />
-                            ) : (
-                                <Ionicons name="person-add-outline" size={28} color="#8B8FA8" />
-                            )}
-                        </View>
+                            <Ionicons
+                                name={isFilled ? "person" : "person-add-outline"}
+                                size={28}
+                                color={isFilled ? "white" : "#8B8FA8"}
+                            />
+                        </SlotWrapper>
                     );
                 })}
             </View>
 
-            <Text style={{ color: Colors.textSecondary }}>
-                {found}/{total} players found
+            <Text style={styles.counter}>
+                {players.length}/{total} players found
             </Text>
+
+            <InviteFriendsDialog
+                visible={dialogVisible}
+                onClose={() => setDialogVisible(false)}
+                friends={[]}
+
+            />
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    title: {
+        color: Colors.textPrimary,
+        fontSize: 20,
+        fontWeight: "700",
+        marginBottom: 20,
+    },
+
+    row: {
+        flexDirection: "row",
+        gap: 16,
+        marginBottom: 20,
+    },
+
+    slot: {
+        width: 60,
+        height: 60,
+        borderRadius: Radius.full,
+        justifyContent: "center",
+        alignItems: "center",
+        borderColor: "#8B8FA8",
+    },
+
+    counter: {
+        color: Colors.textSecondary,
+    },
+
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    modalBox: {
+        backgroundColor: Colors.card,
+        padding: Spacing.lg,
+        borderRadius: Radius.lg,
+        minWidth: 220,
+        alignItems: "center",
+    },
+});
